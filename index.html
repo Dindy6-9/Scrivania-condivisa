@@ -243,6 +243,38 @@
     background: var(--surface);
   }
   .scadenza .checkbox.checked { background: var(--forest); border-color: var(--forest); }
+  .scadenza .data-cliccabile { cursor: pointer; }
+  .scadenza .data-cliccabile:hover { opacity: 0.7; }
+  .data-input-inline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    width: 92px;
+    padding: 3px 2px;
+    border: 1.5px solid var(--forest-dark);
+    border-radius: 2px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .scadenza .elimina {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+    padding: 0 2px;
+  }
+  .scadenza .elimina:hover { color: var(--brick); }
+  .appunto .elimina {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    float: right;
+    padding: 0 2px;
+  }
+  .appunto .elimina:hover { color: var(--brick); }
   .badge-urgente { font-size: 0.66rem; color: var(--ink-soft); font-weight: 500; margin-left: 4px; }
   .badge-categoria {
     display: inline-block;
@@ -324,6 +356,22 @@
   .msg.mio { align-self: flex-end; background: var(--forest); color: #fff; border-bottom-right-radius: 2px; }
   .msg.suo { align-self: flex-start; background: var(--paper); border: 1px solid var(--border); border-bottom-left-radius: 2px; }
   .msg .stato { display: block; font-size: 0.66rem; margin-top: 3px; opacity: 0.8; }
+  .azioni-msg { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+  .azione-msg-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0;
+    opacity: 0.75;
+  }
+  .azione-msg-btn:hover { opacity: 1; }
+  .testo-msg[contenteditable="true"] {
+    background: rgba(255,255,255,0.25);
+    outline: 1px dashed rgba(255,255,255,0.6);
+    border-radius: 2px;
+    padding: 0 3px;
+  }
   #chat-thread:empty::after { content: "Nessun messaggio ancora"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
   .chat-input-row { display: flex; gap: 8px; }
   .chat-input-row input {
@@ -808,6 +856,22 @@ window.aggiungiScadenza = async function() {
   document.getElementById('anticipo-valore').textContent = '1';
 };
 window.toggleScadenza = async function(id, fattoAttuale) { await updateDoc(doc(db, 'scadenze', id), { fatto: !fattoAttuale }); };
+window.eliminaScadenza = async function(id) {
+  if (!confirm('Eliminare definitivamente questa scadenza?')) return;
+  await deleteDoc(doc(db, 'scadenze', id));
+};
+window.cambiaDataScadenza = function(id, dataAttuale, dataEl) {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.value = dataAttuale;
+  input.className = 'data-input-inline';
+  input.onchange = async () => {
+    await updateDoc(doc(db, 'scadenze', id), { data: input.value });
+  };
+  input.onblur = () => { if (input.parentNode) input.parentNode.replaceChild(dataEl, input); };
+  dataEl.parentNode.replaceChild(input, dataEl);
+  input.focus();
+};
 
 window.filtraCategoria = function(cat, tipo) {
   if (tipo === 'scadenze') { filtroAttivoScadenze = cat; renderFiltriScadenze(ultimiDocsScadenze); applicaFiltroScadenze(); }
@@ -889,16 +953,19 @@ function renderScadenze(snap) {
     el.setAttribute('data-categoria', s.categoria || 'Altro');
     el.innerHTML = `
       <div class="checkbox ${s.fatto ? 'checked' : ''}" onclick="toggleScadenza('${s.id}', ${s.fatto})">${s.fatto ? '✓' : ''}</div>
-      <div class="data">${breve.giorno} ${breve.mese} '${breve.anno}<small>${breve.sett}</small></div>
+      <div class="data data-cliccabile" title="Clicca per cambiare la data">${breve.giorno} ${breve.mese} '${breve.anno}<small>${breve.sett}</small></div>
       <div class="contenuto">
         <div class="titolo"><span class="titolo-testo">${escapeHtml(s.testo)}</span> <span class="badge-urgente">(${cr.testo})</span></div>
         ${s.allarme ? '<div class="meta">🔔 allarme attivo</div>' : ''}
       </div>
       <span class="badge-categoria badge-cat-cliccabile" title="Clicca per cambiare categoria">${escapeHtml(s.categoria || 'Altro')}</span>
+      <button class="elimina" onclick="eliminaScadenza('${s.id}')" title="Elimina definitivamente">🗑</button>
     `;
     abilitaModifica(el.querySelector('.titolo-testo'), 'scadenze', s.id, 'testo');
     const badgeCat = el.querySelector('.badge-cat-cliccabile');
     badgeCat.onclick = () => cambiaCategoriaVoce(s.id, s.categoria || 'Altro', 'scadenze', badgeCat);
+    const dataEl = el.querySelector('.data-cliccabile');
+    dataEl.onclick = () => cambiaDataScadenza(s.id, s.data, dataEl);
     (s.fatto ? completate : attive).appendChild(el);
   });
   applicaFiltroScadenze();
@@ -994,6 +1061,10 @@ window.aggiungiAppunto = async function() {
   input.value = '';
   await addDoc(collection(db, 'appunti'), { testo, autore: UTENTE, creato: serverTimestamp() });
 };
+window.eliminaAppunto = async function(id) {
+  if (!confirm('Eliminare definitivamente questo appunto?')) return;
+  await deleteDoc(doc(db, 'appunti', id));
+};
 
 function renderAppunti(snap) {
   const cont = document.getElementById('appunti-lista');
@@ -1013,7 +1084,7 @@ function renderAppunti(snap) {
     el.className = 'appunto';
     el.setAttribute('data-search', a.testo.toLowerCase());
     el.setAttribute('data-autore', sigla);
-    el.innerHTML = `<div class="appunto-data"><span class="autore autore-${sigla.toLowerCase()}">${sigla}</span>${dataStr}</div><p class="testo-appunto">${escapeHtml(a.testo)}</p>`;
+    el.innerHTML = `<div class="appunto-data"><span class="autore autore-${sigla.toLowerCase()}">${sigla}</span>${dataStr}<button class="elimina" onclick="eliminaAppunto('${a.id}')" title="Elimina">🗑</button></div><p class="testo-appunto">${escapeHtml(a.testo)}</p>`;
     abilitaModifica(el.querySelector('.testo-appunto'), 'appunti', a.id, 'testo');
     cont.appendChild(el);
   });
@@ -1082,7 +1153,34 @@ window.inviaMessaggio = async function() {
   const testo = input.value.trim();
   if (!testo) return;
   input.value = '';
-  await addDoc(collection(db, 'chat'), { testo, autore: UTENTE, vistoDaAltro: false, creato: serverTimestamp() });
+  await addDoc(collection(db, 'chat'), { testo, autore: UTENTE, vistoDaAltro: false, modificato: false, creato: serverTimestamp() });
+};
+
+const FINESTRA_MODIFICA_MS = 3 * 60 * 1000; // 3 minuti, come WhatsApp
+
+window.eliminaMessaggio = async function(id) {
+  if (!confirm('Eliminare questo messaggio?')) return;
+  await deleteDoc(doc(db, 'chat', id));
+};
+window.modificaMessaggio = function(id, testoAttuale, bolla) {
+  const span = bolla.querySelector('.testo-msg');
+  span.setAttribute('contenteditable', 'true');
+  span.focus();
+  // Seleziona tutto il testo per facilitare la modifica
+  const range = document.createRange();
+  range.selectNodeContents(span);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
+
+  const salva = async () => {
+    span.removeAttribute('contenteditable');
+    const nuovo = span.textContent.trim();
+    if (nuovo && nuovo !== testoAttuale) {
+      await updateDoc(doc(db, 'chat', id), { testo: nuovo, modificato: true });
+    }
+  };
+  span.onblur = salva;
+  span.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); span.blur(); } };
 };
 
 async function segnaMessaggiComeVisti(docs) {
@@ -1092,6 +1190,7 @@ async function segnaMessaggiComeVisti(docs) {
   }
 }
 
+let ultimiDocsChat = [];
 function renderChat(snap) {
   const cont = document.getElementById('chat-thread');
   cont.innerHTML = '';
@@ -1102,25 +1201,53 @@ function renderChat(snap) {
     const tb = b.creato && b.creato.toMillis ? b.creato.toMillis() : 0;
     return ta - tb;
   });
+  ultimiDocsChat = docs;
   controllaNovita('chat', docs);
   docs.forEach(m => {
     const mio = m.autore === UTENTE;
     const el = document.createElement('div');
     el.className = 'msg ' + (mio ? 'mio' : 'suo');
     el.setAttribute('data-search', m.testo.toLowerCase());
+    const creatoMs = m.creato && m.creato.toMillis ? m.creato.toMillis() : 0;
+    el.setAttribute('data-creato-ms', creatoMs);
+    el.setAttribute('data-mio', mio ? '1' : '0');
     const ora = m.creato && m.creato.toDate ? m.creato.toDate().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}) : '';
     let stato = '';
-    if (mio) stato = ora + ' · ' + (m.vistoDaAltro ? 'visto ✓✓' : 'inviato');
-    else stato = ora;
-    el.innerHTML = `${escapeHtml(m.testo)}<span class="stato">${stato}</span>`;
+    if (mio) stato = ora + (m.modificato ? ' · modificato' : '') + ' · ' + (m.vistoDaAltro ? 'visto ✓✓' : 'inviato');
+    else stato = ora + (m.modificato ? ' · modificato' : '');
+    el.innerHTML = `
+      <span class="testo-msg">${escapeHtml(m.testo)}</span>
+      <span class="stato">${stato}</span>
+      <span class="azioni-msg" style="display:none;">
+        <button class="azione-msg-btn" title="Modifica">✏️</button>
+        <button class="azione-msg-btn" title="Elimina">🗑</button>
+      </span>
+    `;
+    if (mio) {
+      const [btnModifica, btnElimina] = el.querySelectorAll('.azione-msg-btn');
+      btnModifica.onclick = () => modificaMessaggio(m.id, m.testo, el);
+      btnElimina.onclick = () => eliminaMessaggio(m.id);
+    }
     cont.appendChild(el);
   });
   cont.scrollTop = cont.scrollHeight;
-  // Se la tab chat è aperta in questo momento, segna subito come visti i messaggi dell'altra persona
+  aggiornaAzioniMessaggiVisibili();
   if (document.getElementById('chat').classList.contains('active')) {
     segnaMessaggiComeVisti(docs);
   }
 }
+
+// Mostra/nasconde le icone modifica/elimina in base alla finestra di 3 minuti — ricontrollato ogni 15 secondi
+function aggiornaAzioniMessaggiVisibili() {
+  const adesso = Date.now();
+  document.querySelectorAll('#chat-thread .msg[data-mio="1"]').forEach(el => {
+    const creatoMs = parseInt(el.getAttribute('data-creato-ms'), 10);
+    const azioni = el.querySelector('.azioni-msg');
+    if (azioni) azioni.style.display = (adesso - creatoMs < FINESTRA_MODIFICA_MS) ? 'inline-flex' : 'none';
+  });
+}
+setInterval(aggiornaAzioniMessaggiVisibili, 15000);
+
 
 // ============================================================
 // STAMPA / DOWNLOAD

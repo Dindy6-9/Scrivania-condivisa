@@ -302,7 +302,30 @@
     gap: 5px;
     font-size: 0.72rem;
     color: var(--ink-soft);
+    flex-wrap: wrap;
   }
+  .anticipo-chiudi, .anticipo-conferma {
+    border: 1.5px solid var(--forest-dark);
+    background: var(--forest);
+    color: #fff;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    cursor: pointer;
+  }
+  .anticipo-disattiva {
+    border: 1.5px solid var(--brick);
+    background: none;
+    color: var(--brick);
+    border-radius: 3px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    cursor: pointer;
+  }
+  .meta-aggiungi-allarme { font-size: 0.78rem; color: var(--ink-soft); opacity: 0.6; cursor: pointer; }
+  .meta-aggiungi-allarme:hover { opacity: 1; color: var(--forest-dark); }
   .badge-categoria {
     display: inline-block;
     font-size: 0.68rem;
@@ -941,6 +964,8 @@ window.cambiaAnticipoScadenza = function(id, anticipoAttuale, metaEl) {
     <button type="button" class="anticipo-btn">−</button>
     <span class="anticipo-valore-inline">${testoUnita(valore)}</span>
     <button type="button" class="anticipo-btn">+</button>
+    <button type="button" class="anticipo-chiudi" title="Chiudi">✓</button>
+    <button type="button" class="anticipo-disattiva" title="Disattiva allarme">Disattiva</button>
   `;
   const [btnMeno, btnPiu] = wrap.querySelectorAll('.anticipo-btn');
   const valoreEl = wrap.querySelector('.anticipo-valore-inline');
@@ -951,6 +976,33 @@ window.cambiaAnticipoScadenza = function(id, anticipoAttuale, metaEl) {
   };
   btnMeno.onclick = () => aggiorna(-1);
   btnPiu.onclick = () => aggiorna(1);
+  wrap.querySelector('.anticipo-chiudi').onclick = () => { wrap.parentNode.replaceChild(metaEl, wrap); };
+  wrap.querySelector('.anticipo-disattiva').onclick = async () => {
+    if (!confirm('Disattivare l\'allarme per questa scadenza?')) return;
+    await updateDoc(doc(db, 'scadenze', id), { allarme: false, anticipo: null });
+  };
+  metaEl.parentNode.replaceChild(wrap, metaEl);
+};
+
+window.attivaAllarmeScadenza = function(id, metaEl) {
+  const wrap = document.createElement('span');
+  wrap.className = 'anticipo-edit-inline';
+  let valore = 1;
+  const testoUnita = (v) => v === 0 ? 'il giorno stesso' : (v === 1 ? 'giorno prima' : v + ' giorni prima');
+  wrap.innerHTML = `
+    avvisami
+    <button type="button" class="anticipo-btn">−</button>
+    <span class="anticipo-valore-inline">${testoUnita(valore)}</span>
+    <button type="button" class="anticipo-btn">+</button>
+    <button type="button" class="anticipo-conferma">✓ Attiva</button>
+  `;
+  const [btnMeno, btnPiu] = wrap.querySelectorAll('.anticipo-btn');
+  const valoreEl = wrap.querySelector('.anticipo-valore-inline');
+  btnMeno.onclick = () => { valore = Math.max(0, valore - 1); valoreEl.textContent = testoUnita(valore); };
+  btnPiu.onclick = () => { valore = Math.min(90, valore + 1); valoreEl.textContent = testoUnita(valore); };
+  wrap.querySelector('.anticipo-conferma').onclick = async () => {
+    await updateDoc(doc(db, 'scadenze', id), { allarme: true, anticipo: valore });
+  };
   metaEl.parentNode.replaceChild(wrap, metaEl);
 };
 
@@ -1037,7 +1089,7 @@ function renderScadenze(snap) {
       <div class="data data-cliccabile" title="Clicca per cambiare la data">${breve.giorno} ${breve.mese} '${breve.anno}<small>${breve.sett}</small></div>
       <div class="contenuto">
         <div class="titolo"><span class="titolo-testo">${escapeHtml(s.testo)}</span> <span class="badge-urgente">(${cr.testo})</span>${s.ricorrenza ? ' <span class="badge-ricorrenza" title="Scadenza ricorrente">🔁 ' + (s.ricorrenza === 'mensile' ? 'mensile' : 'annuale') + '</span>' : ''}</div>
-        ${s.allarme ? '<div class="meta' + ((s.anticipo !== null && s.anticipo !== undefined && cr.diffGiorni <= s.anticipo) ? ' meta-allarme-pulsante' : '') + '" title="Clicca per cambiare quando avvisare">🔔 allarme attivo</div>' : ''}
+        ${s.allarme ? '<div class="meta' + ((s.anticipo !== null && s.anticipo !== undefined && cr.diffGiorni <= s.anticipo) ? ' meta-allarme-pulsante' : '') + '" title="Clicca per cambiare quando avvisare">🔔 allarme attivo</div>' : '<div class="meta meta-aggiungi-allarme" title="Clicca per attivare un allarme">🔔 + allarme</div>'}
       </div>
       <span class="badge-categoria badge-cat-cliccabile" title="Clicca per cambiare categoria">${escapeHtml(s.categoria || 'Altro')}</span>
       <button class="elimina" onclick="eliminaScadenza('${s.id}')" title="Elimina definitivamente">🗑</button>
@@ -1049,7 +1101,7 @@ function renderScadenze(snap) {
     const dataEl = el.querySelector('.data-cliccabile');
     dataEl.onclick = () => cambiaDataScadenza(s.id, s.data, dataEl);
     const metaEl = el.querySelector('.meta');
-    if (metaEl) metaEl.onclick = () => cambiaAnticipoScadenza(s.id, s.anticipo || 0, metaEl);
+    if (metaEl) metaEl.onclick = () => s.allarme ? cambiaAnticipoScadenza(s.id, s.anticipo || 0, metaEl) : attivaAllarmeScadenza(s.id, metaEl);
     (s.fatto ? completate : attive).appendChild(el);
   });
   applicaFiltroScadenze();
@@ -1203,6 +1255,27 @@ window.aggiungiLink = async function() {
   document.getElementById('link-url-input').value = '';
   await addDoc(collection(db, 'link'), { titolo, url, categoria, creato: serverTimestamp() });
 };
+window.eliminaLink = async function(id) {
+  if (!confirm('Eliminare definitivamente questo link?')) return;
+  await deleteDoc(doc(db, 'link', id));
+};
+window.cambiaUrlLink = function(id, urlAttuale, linkEl) {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = urlAttuale;
+  input.className = 'data-input-inline';
+  input.style.width = '160px';
+  const salva = async () => {
+    let v = input.value.trim();
+    if (!v) { if (input.parentNode) input.parentNode.replaceChild(linkEl, input); return; }
+    if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+    await updateDoc(doc(db, 'link', id), { url: v });
+  };
+  input.onblur = salva;
+  input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+  linkEl.parentNode.replaceChild(input, linkEl);
+  input.focus();
+};
 
 function renderLink(snap) {
   const cont = document.getElementById('link-lista');
@@ -1219,11 +1292,15 @@ function renderLink(snap) {
     el.innerHTML = `
       <div class="titolo titolo-link">${escapeHtml(l.titolo)}</div>
       <span class="badge-categoria badge-cat-cliccabile" title="Clicca per cambiare categoria">${escapeHtml(l.categoria || 'Altro')}</span>
-      <a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">Apri ↗</a>
+      <a href="${escapeHtml(l.url)}" target="_blank" rel="noopener" class="link-apri-cliccabile" title="Clicca su ✎ per modificare il link">Apri ↗</a>
+      <button class="elimina" title="Modifica il link">✎</button>
+      <button class="elimina" onclick="eliminaLink('${l.id}')" title="Elimina definitivamente">🗑</button>
     `;
     abilitaModifica(el.querySelector('.titolo-link'), 'link', l.id, 'titolo');
     const badgeCat = el.querySelector('.badge-cat-cliccabile');
     badgeCat.onclick = () => cambiaCategoriaVoce(l.id, l.categoria || 'Altro', 'link', badgeCat);
+    const linkA = el.querySelector('.link-apri-cliccabile');
+    el.querySelectorAll('.elimina')[0].onclick = () => cambiaUrlLink(l.id, l.url, linkA);
     cont.appendChild(el);
   });
   applicaFiltroLink();

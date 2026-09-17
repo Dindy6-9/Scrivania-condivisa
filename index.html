@@ -435,6 +435,8 @@
 
   /* Link */
   .link-row { display: flex; gap: 8px; align-items: center; padding: 3px 0; border-bottom: 1px solid var(--border); }
+  .link-data { font-size: 0.7rem; font-weight: 700; color: var(--forest-dark); flex-shrink: 0; width: 46px; cursor: pointer; }
+  .link-data:hover { opacity: 0.7; }
   .link-row:last-child { border-bottom: none; }
   .link-row .titolo { font-weight: 500; font-size: 0.8rem; flex: 1; }
   .link-row a { font-size: 0.72rem; color: var(--forest); text-decoration: none; border-bottom: 1px solid var(--forest); }
@@ -608,6 +610,7 @@
       <div class="filtri-categoria" id="filtri-link"></div>
       <div id="link-lista"></div>
       <div class="add-row">
+        <input type="date" id="link-data-input" class="diario-data-input">
         <input type="text" id="link-titolo-input" placeholder="Titolo…" style="flex:1;">
         <input type="text" id="link-url-input" placeholder="Link…" style="flex:1;">
         <select id="link-categoria" class="categoria-select" onchange="gestisciNuovaCategoria(this, 'link')">
@@ -780,6 +783,7 @@ function segnaVisto(tab) {
 // ============================================================
 document.getElementById('scadenza-data-input').value = oggiISO();
 document.getElementById('diario-data-input').value = oggiISO();
+document.getElementById('link-data-input').value = oggiISO();
 
 let LISTA_CATEGORIE_SCADENZE = ['Bandi', 'Contabili', 'Admin', 'Altro'];
 let LISTA_CATEGORIE_LINK = ['Generali', 'Fornitori', 'Altro'];
@@ -1248,16 +1252,27 @@ function applicaFiltroAutoreCorrente(listaId, wrapId) {
 window.aggiungiLink = async function() {
   const titolo = document.getElementById('link-titolo-input').value.trim();
   let url = document.getElementById('link-url-input').value.trim();
+  const data = document.getElementById('link-data-input').value || oggiISO();
   if (!titolo || !url) return;
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   const categoria = document.getElementById('link-categoria').value;
   document.getElementById('link-titolo-input').value = '';
   document.getElementById('link-url-input').value = '';
-  await addDoc(collection(db, 'link'), { titolo, url, categoria, creato: serverTimestamp() });
+  await addDoc(collection(db, 'link'), { titolo, url, categoria, data, creato: serverTimestamp() });
 };
 window.eliminaLink = async function(id) {
   if (!confirm('Eliminare definitivamente questo link?')) return;
   await deleteDoc(doc(db, 'link', id));
+};
+window.cambiaDataLink = function(id, dataAttuale, dataEl) {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.value = dataAttuale || oggiISO();
+  input.className = 'data-input-inline';
+  input.onchange = async () => { await updateDoc(doc(db, 'link', id), { data: input.value }); };
+  input.onblur = () => { if (input.parentNode) input.parentNode.replaceChild(dataEl, input); };
+  dataEl.parentNode.replaceChild(input, dataEl);
+  input.focus();
 };
 window.cambiaUrlLink = function(id, urlAttuale, linkEl) {
   const input = document.createElement('input');
@@ -1290,6 +1305,7 @@ function renderLink(snap) {
     el.setAttribute('data-search', l.titolo.toLowerCase());
     el.setAttribute('data-categoria', l.categoria || 'Altro');
     el.innerHTML = `
+      <span class="link-data data-cliccabile" title="Clicca per cambiare la data">${l.data ? formatDataBreve(l.data).giorno + ' ' + formatDataBreve(l.data).mese : '—'}</span>
       <div class="titolo titolo-link">${escapeHtml(l.titolo)}</div>
       <span class="badge-categoria badge-cat-cliccabile" title="Clicca per cambiare categoria">${escapeHtml(l.categoria || 'Altro')}</span>
       <a href="${escapeHtml(l.url)}" target="_blank" rel="noopener" class="link-apri-cliccabile" title="Clicca su ✎ per modificare il link">Apri ↗</a>
@@ -1299,6 +1315,7 @@ function renderLink(snap) {
     abilitaModifica(el.querySelector('.titolo-link'), 'link', l.id, 'titolo');
     const badgeCat = el.querySelector('.badge-cat-cliccabile');
     badgeCat.onclick = () => cambiaCategoriaVoce(l.id, l.categoria || 'Altro', 'link', badgeCat);
+    el.querySelector('.link-data').onclick = function() { cambiaDataLink(l.id, l.data, this); };
     const linkA = el.querySelector('.link-apri-cliccabile');
     el.querySelectorAll('.elimina')[0].onclick = () => cambiaUrlLink(l.id, l.url, linkA);
     cont.appendChild(el);

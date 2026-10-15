@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Scrivania Condivisa — v1.0 — Cinzia & Cecilia -->
+<!-- Scrivania Condivisa — v2.2 — data nella chat — Cinzia & Cecilia — a capo, Contatti, backup, giorni, calendario -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -230,7 +230,7 @@
     border-radius: 2px;
     padding: 3px 2px;
   }
-  .scadenza .data small { display: inline; font-size: 0.68rem; color: var(--ink-soft); font-weight: 700; margin-left: 3px; text-transform: lowercase; }
+  .scadenza .data small { display: inline; font-size: 0.68rem; color: var(--ink-soft); font-weight: 700; margin-left: 3px; }
   .scadenza .contenuto { flex: 1; }
   .scadenza .contenuto .titolo { font-weight: 500; font-size: 0.85rem; margin-bottom: 1px; }
   .scadenza .contenuto .meta { font-size: 0.78rem; color: var(--ink-soft); }
@@ -386,9 +386,137 @@
     border: 1px solid var(--forest); border-radius: 3px; padding: 0px 6px; margin-right: 4px;
   }
 
-  [contenteditable="true"] { border-radius: 2px; padding: 0 2px; margin: 0 -2px; }
-  [contenteditable="true"]:hover { background: var(--paper); cursor: text; }
-  [contenteditable="true"]:focus { outline: 1.5px dashed var(--forest); background: var(--paper); }
+  [contenteditable="true"], [contenteditable="plaintext-only"] { border-radius: 2px; padding: 0 2px; margin: 0 -2px; }
+  [contenteditable="true"]:hover, [contenteditable="plaintext-only"]:hover { background: var(--paper); cursor: text; }
+  [contenteditable="true"]:focus, [contenteditable="plaintext-only"]:focus { outline: 1.5px dashed var(--forest); background: var(--paper); }
+
+  /* v2.1 — testi liberi: rispettano gli "a capo" scritti a mano */
+  .testo-diario, .testo-nota, .testo-appunto, .contatto-perche { white-space: pre-wrap; word-break: break-word; }
+  .campo-multiriga {
+    flex: 1; min-width: 0; padding: 9px 12px;
+    border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
+    font-family: inherit; font-size: 0.85rem; line-height: 1.4; color: var(--ink);
+    resize: none; overflow: hidden; min-height: 38px;
+  }
+  .campo-multiriga:focus { outline: 2px solid var(--forest); outline-offset: 1px; }
+  .orario-input {
+    padding: 9px 6px; border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
+    font-family: inherit; font-size: 0.82rem; color: var(--ink); width: 100px; flex: 0 0 auto !important;
+  }
+  .giorno-sett-label { flex: 0 0 auto; min-width: 26px; margin-left: -4px; font-size: 0.78rem; font-weight: 700; color: var(--forest-dark); }
+
+  /* v2.1 — Contatti */
+  .contatto { display: flex; gap: 10px; padding: 5px 0; align-items: flex-start; border-bottom: 1px solid var(--border); }
+  .contatto:last-child { border-bottom: none; }
+  .contatto-data {
+    font-weight: 700; font-size: 0.68rem; color: var(--forest-dark); width: 92px; flex-shrink: 0;
+    white-space: nowrap; text-align: center; border: 1.5px solid var(--forest-dark); border-radius: 2px; padding: 3px 2px; cursor: pointer;
+  }
+  .contatto-data:hover { opacity: 0.7; }
+  .contatto-data small { font-size: 0.68rem; color: var(--ink-soft); font-weight: 700; margin-left: 3px; }
+  .contatto-ora {
+    display: inline-block; font-size: 0.68rem; font-weight: 700; color: var(--ink-soft);
+    border: 1px dashed var(--border); border-radius: 3px; padding: 0 6px; cursor: pointer; white-space: nowrap;
+  }
+  .contatto-ora:hover { border-color: var(--forest-dark); color: var(--forest-dark); }
+  .contatto-corpo { flex: 1; min-width: 0; }
+  .contatto-riga1 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .contatto-chi { font-weight: 700; font-size: 0.86rem; }
+  .contatto-perche { font-size: 0.84rem; font-weight: 500; line-height: 1.4; color: var(--ink); }
+  .badge-contatto {
+    display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 0 7px; border-radius: 3px;
+    border: 1.5px solid currentColor; background: var(--paper); white-space: nowrap; cursor: pointer;
+  }
+  .badge-contatto:hover { opacity: 0.7; }
+  .mezzo-telefono { color: var(--forest-dark); }
+  .mezzo-whatsapp { color: #1F8A4C; }
+  .mezzo-mail { color: #3B6A94; }
+  .badge-freccia { display: inline-block; font-size: 1.1rem; font-weight: 800; line-height: 1; cursor: pointer; padding: 0 2px; }
+  .badge-freccia:hover { opacity: 0.6; }
+  .dir-entrata { color: #2E8B3E; }
+  .dir-uscita { color: #2F6FB0; }
+  .contatto-azioni { display: inline-flex; gap: 6px; margin-left: auto; align-items: center; flex-wrap: wrap; }
+  @media (max-width: 600px) {
+    .contatto-azioni { margin-left: 0; flex-wrap: wrap; }
+    .add-row .campo-multiriga { flex-basis: 100% !important; }
+  }
+  .contatto-mini {
+    font-size: 0.7rem; font-weight: 700; font-family: inherit; border: 1px dashed var(--border); background: none;
+    color: var(--ink-soft); border-radius: 3px; padding: 1px 7px; cursor: pointer; white-space: nowrap;
+  }
+  .contatto-mini:hover { border-color: var(--forest-dark); color: var(--forest-dark); }
+  .contatto-mini.pieno { border: 1.5px solid var(--forest-dark); background: var(--paper); color: var(--forest-dark); }
+  .contatto-link {
+    font-size: 0.7rem; font-weight: 700; color: var(--forest-dark); text-decoration: none;
+    border: 1.5px solid var(--forest-dark); background: var(--paper); border-radius: 3px; padding: 1px 7px; white-space: nowrap;
+  }
+  .contatto-link:hover { background: var(--forest); color: #fff; }
+  .contatto .elimina { background: none; border: none; cursor: pointer; font-size: 0.85rem; color: var(--ink-soft); flex-shrink: 0; padding: 0 2px; }
+  .contatto .elimina:hover { color: var(--brick); }
+  .contatto-chi-field { flex: 1 1 180px !important; }
+  .contatto-link-field { flex: 1 1 200px !important; }
+  #contatti-lista:empty::after { content: "Nessun contatto registrato"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
+  .btn-direzione {
+    flex: 0 0 auto !important; width: 42px; height: 38px; padding: 0 !important;
+    font-size: 1.35rem !important; font-weight: 800 !important; line-height: 1;
+    background: var(--paper) !important; border: 1.5px solid currentColor !important; border-radius: 3px; cursor: pointer;
+  }
+  .btn-direzione.dir-entrata { color: #2E8B3E !important; }
+  .btn-direzione.dir-uscita { color: #2F6FB0 !important; }
+  .add-row .btn-riassunto-form { background: var(--paper); color: var(--forest-dark); border: 1.5px dashed var(--forest-dark); }
+  .add-row .btn-riassunto-form.pieno { border-style: solid; }
+  .add-row .btn-riassunto-form:hover { background: var(--forest); color: #fff; }
+
+  /* v2.1 — finestra del riassunto */
+  .modale-sfondo { position: fixed; inset: 0; background: rgba(20, 32, 30, 0.35); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 60; }
+  .modale-sfondo.aperto { display: flex; }
+  .modale { width: 100%; max-width: 560px; background: var(--surface); border: 1.5px solid var(--forest-dark); border-radius: 6px; box-shadow: 0 8px 28px rgba(20, 32, 30, 0.3); padding: 16px; }
+  .modale-testata { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .modale-titolo { font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 600; color: var(--forest-dark); }
+  .modale-sotto { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+  .riassunto-textarea {
+    width: 100%; min-height: 220px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--paper); font-family: inherit; font-size: 0.88rem; line-height: 1.45; color: var(--ink); resize: vertical;
+  }
+  .riassunto-textarea:focus { outline: 2px solid var(--forest); outline-offset: 1px; }
+  .modale-piede { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .btn-salva-riassunto { padding: 9px 16px; background: var(--forest); color: #fff; border: none; border-radius: 3px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-salva-riassunto:hover { background: var(--forest-dark); }
+
+  /* v2.1 — calendario a comparsa */
+  .btn-calendario {
+    position: fixed; right: 22px; bottom: 22px; width: 54px; height: 54px; border-radius: 50%;
+    border: 2px solid var(--forest-dark); background: var(--forest); color: #fff; font-size: 1.5rem; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(20, 32, 30, 0.25); z-index: 50; display: none; align-items: center; justify-content: center;
+  }
+  .btn-calendario:hover { background: var(--forest-dark); }
+  #app[style*="block"] ~ .btn-calendario { display: flex; }
+  .calendario-pannello {
+    position: fixed; right: 22px; bottom: 88px; width: 320px; max-width: calc(100vw - 32px);
+    background: var(--surface); border: 1.5px solid var(--forest-dark); border-radius: 6px;
+    box-shadow: 0 6px 22px rgba(20, 32, 30, 0.25); padding: 14px 14px 12px; z-index: 51; display: none;
+  }
+  .calendario-pannello.aperto { display: block; }
+  .cal-testata { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 6px; }
+  .cal-mese { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; color: var(--forest-dark); text-transform: capitalize; flex: 1; text-align: center; }
+  .cal-freccia, .cal-oggi, .cal-chiudi { border: 1.5px solid var(--forest-dark); background: var(--paper); color: var(--forest-dark); border-radius: 3px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .cal-freccia { width: 30px; height: 30px; font-size: 1.1rem; line-height: 1; }
+  .cal-oggi { padding: 0 8px; height: 30px; font-size: 0.74rem; }
+  .cal-chiudi { width: 30px; height: 30px; font-size: 0.85rem; border-color: var(--border); color: var(--ink-soft); }
+  .cal-freccia:hover, .cal-oggi:hover { background: var(--forest); color: #fff; }
+  .cal-griglia { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-intest { text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--ink-soft); padding-bottom: 3px; }
+  .cal-intest.festivo { color: var(--brick); }
+  .cal-giorno { position: relative; text-align: center; font-size: 0.84rem; font-weight: 600; padding: 7px 0; border-radius: 3px; background: var(--paper); color: var(--ink); }
+  .cal-giorno.fuori { background: none; color: var(--ink-soft); opacity: 0.45; font-weight: 500; }
+  .cal-giorno.festivo { color: var(--brick); }
+  .cal-giorno.oggi { background: var(--forest); color: #fff; }
+  .cal-giorno.con-scadenza::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #E63946; }
+  .cal-giorno.oggi.con-scadenza::after { background: #fff; }
+  .cal-legenda { margin-top: 8px; font-size: 0.68rem; color: var(--ink-soft); }
+  .cal-legenda span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #E63946; margin-right: 4px; vertical-align: middle; }
+  .btn-export:disabled { opacity: 0.6; cursor: wait; }
+  .azioni-export { flex-wrap: wrap; }
 
   /* Appunti */
   .appunto { background: var(--surface); border-left: 3px solid var(--forest); border-radius: 3px; padding: 8px 12px; margin-bottom: 5px; }
@@ -406,6 +534,12 @@
   .msg.mio { align-self: flex-end; background: var(--forest); color: #fff; border-bottom-right-radius: 2px; }
   .msg.suo { align-self: flex-start; background: var(--paper); border: 1px solid var(--border); border-bottom-left-radius: 2px; }
   .msg .stato { display: block; font-size: 0.66rem; margin-top: 3px; opacity: 0.8; }
+  /* v2.2 — separatore con la data tra i messaggi di giorni diversi */
+  .chat-giorno { align-self: center; margin: 6px 0 2px; }
+  .chat-giorno span {
+    display: inline-block; font-size: 0.7rem; font-weight: 700; color: var(--forest-dark);
+    background: var(--paper); border: 1px solid var(--border); border-radius: 10px; padding: 2px 10px;
+  }
   .azioni-msg { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
   .azione-msg-btn {
     background: none;
@@ -477,7 +611,8 @@
     #app { max-width: 100%; border: none; }
     header.appbar, .search-row, nav.tabs, footer.note, .add-row { display: none !important; }
     section.panel { padding: 0; }
-    [contenteditable="true"]:hover, [contenteditable="true"]:focus { background: none !important; outline: none !important; }
+    [contenteditable]:hover, [contenteditable]:focus { background: none !important; outline: none !important; }
+    .btn-calendario, .calendario-pannello, .modale-sfondo { display: none !important; }
   }
 </style>
 </head>
@@ -506,13 +641,16 @@
 
     <div class="search-row">
       <div class="search-input-wrap">
-        <input type="text" id="ricerca" placeholder="Cerca in scadenze, diario, note, chat, appunti, link…" oninput="cerca(this.value)">
+        <input type="text" id="ricerca" placeholder="Cerca in scadenze, diario, note, chat, appunti, link, contatti…" oninput="cerca(this.value)">
         <button class="btn-clear-ricerca" onclick="pulisciRicerca()" title="Cancella ricerca">✕</button>
       </div>
       <div class="search-hint" id="search-hint" style="display:none;"></div>
       <div class="azioni-export">
         <button class="btn-export" onclick="stampaVista()">🖨 Stampa</button>
         <button class="btn-export" onclick="scaricaVista()">⬇ Scarica</button>
+        <button class="btn-export" id="btn-backup" onclick="faiBackup()" title="Scarica in un unico file tutti i dati di tutte le tab">💾 Backup</button>
+        <button class="btn-export" onclick="document.getElementById('file-ripristino').click()" title="Ricarica i dati da un file di backup">↩ Ripristina</button>
+        <input type="file" id="file-ripristino" accept=".json,application/json" style="display:none;" onchange="ripristinaBackup(this)">
       </div>
     </div>
 
@@ -523,6 +661,7 @@
       <button onclick="mostra('appunti', this)">Appunti<span class="puntino-novita" id="novita-appunti" style="display:none;"></span></button>
       <button onclick="mostra('chat', this)">Chat<span class="puntino-novita" id="novita-chat" style="display:none;"></span></button>
       <button onclick="mostra('link', this)">Link</button>
+      <button onclick="mostra('contatti', this)">Contatti<span class="puntino-novita" id="novita-contatti" style="display:none;"></span></button>
       <button onclick="mostra('completate', this)">Completate</button>
     </nav>
 
@@ -531,7 +670,7 @@
       <div class="filtri-categoria" id="filtri-scadenze"></div>
       <div id="scadenze-attive"></div>
       <div class="add-row scadenza-add-row">
-        <input type="date" id="scadenza-data-input" class="diario-data-input">
+        <input type="date" id="scadenza-data-input" class="diario-data-input"><span class="giorno-sett-label" id="scadenza-data-input-sett"></span>
         <input type="text" id="scadenza-input" placeholder="Nuova scadenza…" style="flex:1;">
         <select id="scadenza-categoria" class="categoria-select" onchange="gestisciNuovaCategoria(this, 'scadenze')">
           <option value="Bandi">Bandi</option>
@@ -561,8 +700,8 @@
       <h2 class="panel-title">Diario giornaliero</h2>
       <div id="diario-lista"></div>
       <div class="add-row diario-add-row">
-        <input type="date" id="diario-data-input" class="diario-data-input">
-        <input type="text" id="diario-input" placeholder="Cosa hai fatto?" style="flex:1;" onkeydown="if(event.key==='Enter') aggiungiDiario()">
+        <input type="date" id="diario-data-input" class="diario-data-input"><span class="giorno-sett-label" id="diario-data-input-sett"></span>
+        <textarea id="diario-input" class="campo-multiriga" rows="1" placeholder="Cosa hai fatto? (Invio = a capo)"></textarea>
         <button onclick="aggiungiDiario()">Aggiungi</button>
       </div>
     </section>
@@ -577,7 +716,7 @@
       <div id="note-lista"></div>
       <div class="add-row nota-add-row">
         <input type="text" id="nota-tag-input" placeholder="Etichetta (es. Bando Cultura, Telefonare…)" class="nota-tag-field">
-        <input type="text" id="nota-input" placeholder="Testo della nota…" style="flex:1;" onkeydown="if(event.key==='Enter') aggiungiNota()">
+        <textarea id="nota-input" class="campo-multiriga" rows="1" placeholder="Testo della nota… (Invio = a capo)"></textarea>
         <button onclick="aggiungiNota()">Aggiungi</button>
       </div>
     </section>
@@ -610,7 +749,7 @@
       <div class="filtri-categoria" id="filtri-link"></div>
       <div id="link-lista"></div>
       <div class="add-row">
-        <input type="date" id="link-data-input" class="diario-data-input">
+        <input type="date" id="link-data-input" class="diario-data-input"><span class="giorno-sett-label" id="link-data-input-sett"></span>
         <input type="text" id="link-titolo-input" placeholder="Titolo…" style="flex:1;">
         <input type="text" id="link-url-input" placeholder="Link…" style="flex:1;">
         <select id="link-categoria" class="categoria-select" onchange="gestisciNuovaCategoria(this, 'link')">
@@ -623,19 +762,76 @@
       </div>
     </section>
 
+    <section class="panel" id="contatti">
+      <h2 class="panel-title">Contatti</h2>
+      <div class="filtri-categoria" id="filtri-autore-contatti">
+        <button class="filtro-chip attivo" onclick="filtraAutore(null, 'contatti-lista', 'filtri-autore-contatti', this)">Tutti</button>
+        <button class="filtro-chip" data-autore="CI" onclick="filtraAutore('CI', 'contatti-lista', 'filtri-autore-contatti', this)">Cinzia</button>
+        <button class="filtro-chip" data-autore="CE" onclick="filtraAutore('CE', 'contatti-lista', 'filtri-autore-contatti', this)">Cecilia</button>
+      </div>
+      <div id="contatti-lista"></div>
+      <div class="add-row">
+        <input type="date" id="contatto-data-input" class="diario-data-input"><span class="giorno-sett-label" id="contatto-data-input-sett"></span>
+        <input type="time" id="contatto-ora-input" class="orario-input" title="Ora (facoltativa)">
+        <select id="contatto-mezzo" class="categoria-select">
+          <option value="telefono">📞 Telefono</option>
+          <option value="whatsapp">💬 WhatsApp</option>
+          <option value="mail">✉️ Mail</option>
+        </select>
+        <button type="button" id="contatto-direzione" class="btn-direzione dir-uscita" data-valore="uscita" onclick="invertiDirezioneForm()" title="In uscita — clicca per cambiare">↗</button>
+        <input type="text" id="contatto-chi-input" class="contatto-chi-field" placeholder="Chi…">
+        <input type="text" id="contatto-link-input" class="contatto-link-field" placeholder="📎 Link documenti (facoltativo)…">
+      </div>
+      <div class="add-row" style="margin-top:8px;">
+        <textarea id="contatto-perche-input" class="campo-multiriga" rows="1" placeholder="Perché… (Invio = a capo)"></textarea>
+        <button type="button" id="btn-riassunto-nuovo" class="btn-riassunto-form" onclick="apriRiassuntoNuovo()" title="Scrivi un riassunto per questo contatto">📝 Riassunto</button>
+        <button onclick="aggiungiContatto()">Aggiungi</button>
+      </div>
+    </section>
+
     <section class="panel" id="completate">
       <h2 class="panel-title">Scadenze completate</h2>
       <div id="scadenze-completate"></div>
     </section>
 
-    <footer class="note">Scrivania Condivisa · v1.0 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
+    <footer class="note">Scrivania Condivisa · v2.2 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
+  </div>
+
+  <button class="btn-calendario" id="btn-calendario" onclick="apriChiudiCalendario()" title="Calendario">📅</button>
+  <div class="calendario-pannello" id="calendario-pannello">
+    <div class="cal-testata">
+      <button class="cal-freccia" onclick="spostaMese(-1)" title="Mese precedente">‹</button>
+      <div class="cal-mese" id="cal-mese"></div>
+      <button class="cal-freccia" onclick="spostaMese(1)" title="Mese successivo">›</button>
+      <button class="cal-oggi" onclick="vaiAOggi()">Oggi</button>
+      <button class="cal-chiudi" onclick="apriChiudiCalendario()" title="Chiudi">✕</button>
+    </div>
+    <div class="cal-griglia" id="cal-griglia"></div>
+    <div class="cal-legenda"><span></span>giorni con scadenze da fare</div>
+  </div>
+
+  <div class="modale-sfondo" id="modale-riassunto" onclick="if(event.target===this) chiudiRiassunto()">
+    <div class="modale">
+      <div class="modale-testata">
+        <div>
+          <div class="modale-titolo">📝 Riassunto</div>
+          <div class="modale-sotto" id="riassunto-sotto"></div>
+        </div>
+        <button class="cal-chiudi" onclick="chiudiRiassunto()" title="Chiudi (salva)">✕</button>
+      </div>
+      <textarea id="riassunto-testo" class="riassunto-textarea" placeholder="Scrivi qui il riassunto della telefonata, del messaggio o della mail…"></textarea>
+      <div class="modale-piede">
+        <span class="search-hint">Si salva da solo quando chiudi.</span>
+        <button class="btn-salva-riassunto" onclick="chiudiRiassunto()">Salva e chiudi</button>
+      </div>
+    </div>
   </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc,
-  onSnapshot, serverTimestamp, query, where, getDocs
+  onSnapshot, serverTimestamp, query, where, getDocs, Timestamp
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
@@ -704,9 +900,11 @@ window.scegliUtente = function(sigla) {
 // ============================================================
 const MESI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 const MESI_LUNGHI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-const GIORNI_SETT = ['do','lu','ma','me','gi','ve','sa'];
+const GIORNI_SETT = ['DO','LU','MA','ME','GI','VE','SA'];
 
-function oggiISO() { return new Date().toISOString().split('T')[0]; }
+// v2.1 — data nel fuso orario locale (prima usava l'ora di Londra: dopo mezzanotte segnava il giorno prima)
+function isoLocale(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function oggiISO() { return isoLocale(new Date()); }
 
 function formatDataBreve(dataISO) {
   const d = new Date(dataISO + 'T00:00:00');
@@ -717,9 +915,14 @@ function formatGiornoLungo(dataISO) {
   const oggi = new Date(); oggi.setHours(0,0,0,0);
   const ieri = new Date(oggi); ieri.setDate(ieri.getDate() - 1);
   const dCheck = new Date(d); dCheck.setHours(0,0,0,0);
-  if (dCheck.getTime() === oggi.getTime()) return 'Oggi — ' + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
-  if (dCheck.getTime() === ieri.getTime()) return 'Ieri — ' + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
-  return d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
+  const sett = GIORNI_SETT[d.getDay()] + ' ';
+  if (dCheck.getTime() === oggi.getTime()) return 'Oggi — ' + sett + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
+  if (dCheck.getTime() === ieri.getTime()) return 'Ieri — ' + sett + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
+  return sett + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
+}
+function formatGiornoSemplice(dataISO) {
+  const d = new Date(dataISO + 'T00:00:00');
+  return GIORNI_SETT[d.getDay()] + ' ' + d.getDate() + ' ' + MESI_LUNGHI[d.getMonth()];
 }
 function contoAllaRovescia(dataISO) {
   const oggi = new Date(); oggi.setHours(0,0,0,0);
@@ -750,14 +953,42 @@ function escapeHtml(s) {
 }
 function nomeCompleto(sigla) { return sigla === 'CI' ? 'Cinzia' : 'Cecilia'; }
 
-function abilitaModifica(el, coll, id, campo) {
-  el.setAttribute('contenteditable', 'true');
+// multiriga = true → Invio va a capo (si salva cliccando fuori, oppure Ctrl+Invio)
+function abilitaModifica(el, coll, id, campo, multiriga) {
+  if (multiriga) {
+    el.setAttribute('contenteditable', 'plaintext-only');
+    if (el.contentEditable !== 'plaintext-only') el.setAttribute('contenteditable', 'true');
+  } else {
+    el.setAttribute('contenteditable', 'true');
+  }
   el.addEventListener('blur', async () => {
-    const nuovo = el.textContent.trim();
+    const grezzo = multiriga ? el.innerText : el.textContent;
+    const nuovo = grezzo.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
     if (nuovo === '') return;
     try { await updateDoc(doc(db, coll, id), { [campo]: nuovo }); } catch (e) { console.error(e); }
   });
-  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+  el.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (multiriga && !e.ctrlKey && !e.metaKey) {
+      if (el.getAttribute('contenteditable') === 'true') { e.preventDefault(); document.execCommand('insertLineBreak'); }
+      return;
+    }
+    e.preventDefault(); el.blur();
+  });
+}
+
+// Caselle di scrittura che crescono da sole mentre si va a capo; Ctrl+Invio aggiunge subito
+function attivaCampoMultiriga(id, funzioneAggiungi) {
+  const ta = document.getElementById(id);
+  const adatta = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+  ta.addEventListener('input', adatta);
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); funzioneAggiungi(); } });
+  ta.adatta = adatta;
+}
+function svuotaCampo(id) {
+  const ta = document.getElementById(id);
+  ta.value = '';
+  if (ta.adatta) { ta.style.height = 'auto'; ta.adatta(); }
 }
 
 // ============================================================
@@ -926,7 +1157,7 @@ function calcolaProssimaData(dataISO, ricorrenza) {
   const d = new Date(dataISO + 'T00:00:00');
   if (ricorrenza === 'mensile') d.setMonth(d.getMonth() + 1);
   else if (ricorrenza === 'annuale') d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().split('T')[0];
+  return isoLocale(d);
 }
 
 window.toggleScadenza = async function(scadenza) {
@@ -1118,7 +1349,7 @@ window.aggiungiDiario = async function() {
   const testo = document.getElementById('diario-input').value.trim();
   const data = document.getElementById('diario-data-input').value;
   if (!testo || !data) return;
-  document.getElementById('diario-input').value = '';
+  svuotaCampo('diario-input');
   await addDoc(collection(db, 'diario'), { testo, data, autore: UTENTE, creato: serverTimestamp() });
 };
 
@@ -1145,7 +1376,7 @@ function renderDiario(snap) {
       el.setAttribute('data-search', v.testo.toLowerCase());
       const sigla = v.autore || 'CI';
       el.innerHTML = `<span class="autore autore-${sigla.toLowerCase()}">${sigla}</span><span class="testo-diario">${escapeHtml(v.testo)}</span>`;
-      abilitaModifica(el.querySelector('.testo-diario'), 'diario', v.id, 'testo');
+      abilitaModifica(el.querySelector('.testo-diario'), 'diario', v.id, 'testo', true);
       giornoDiv.appendChild(el);
     });
     cont.appendChild(giornoDiv);
@@ -1160,7 +1391,7 @@ window.aggiungiNota = async function() {
   const testo = document.getElementById('nota-input').value.trim();
   if (!testo) return;
   document.getElementById('nota-tag-input').value = '';
-  document.getElementById('nota-input').value = '';
+  svuotaCampo('nota-input');
   await addDoc(collection(db, 'note'), { tag, testo, fatto: false, autore: UTENTE, creato: serverTimestamp() });
 };
 window.toggleNota = async function(id, fattoAttuale) { await updateDoc(doc(db, 'note', id), { fatto: !fattoAttuale }); };
@@ -1185,7 +1416,7 @@ function renderNote(snap) {
       <button class="elimina" onclick="eliminaNota('${n.id}')" title="Elimina nota">🗑</button>
     `;
     abilitaModifica(el.querySelector('.tag-testo'), 'note', n.id, 'tag');
-    abilitaModifica(el.querySelector('.testo-nota'), 'note', n.id, 'testo');
+    abilitaModifica(el.querySelector('.testo-nota'), 'note', n.id, 'testo', true);
     cont.appendChild(el);
   });
   applicaFiltroAutoreCorrente('note-lista', 'filtri-autore-note');
@@ -1198,7 +1429,7 @@ window.aggiungiAppunto = async function() {
   const input = document.getElementById('appunto-input');
   const testo = input.value.trim();
   if (!testo) return;
-  input.value = '';
+  svuotaCampo('appunto-input');
   await addDoc(collection(db, 'appunti'), { testo, autore: UTENTE, creato: serverTimestamp() });
 };
 window.eliminaAppunto = async function(id) {
@@ -1218,21 +1449,21 @@ function renderAppunti(snap) {
   });
   controllaNovita('appunti', docs);
   docs.forEach(a => {
-    const dataStr = a.creato && a.creato.toDate ? formatGiornoLungo(a.creato.toDate().toISOString().split('T')[0]) : '';
+    const dataStr = a.creato && a.creato.toDate ? formatGiornoLungo(isoLocale(a.creato.toDate())) : '';
     const sigla = a.autore || 'CI';
     const el = document.createElement('div');
     el.className = 'appunto';
     el.setAttribute('data-search', a.testo.toLowerCase());
     el.setAttribute('data-autore', sigla);
     el.innerHTML = `<div class="appunto-data"><span class="autore autore-${sigla.toLowerCase()}">${sigla}</span>${dataStr}<button class="elimina" onclick="eliminaAppunto('${a.id}')" title="Elimina">🗑</button></div><p class="testo-appunto">${escapeHtml(a.testo)}</p>`;
-    abilitaModifica(el.querySelector('.testo-appunto'), 'appunti', a.id, 'testo');
+    abilitaModifica(el.querySelector('.testo-appunto'), 'appunti', a.id, 'testo', true);
     cont.appendChild(el);
   });
   applicaFiltroAutoreCorrente('appunti-lista', 'filtri-autore-appunti');
 }
 
 // Filtro autore generico (Note e Appunti)
-let filtroAutoreAttivo = { 'note-lista': null, 'appunti-lista': null };
+let filtroAutoreAttivo = { 'note-lista': null, 'appunti-lista': null, 'contatti-lista': null };
 window.filtraAutore = function(sigla, listaId, wrapId, btn) {
   filtroAutoreAttivo[listaId] = sigla;
   document.querySelectorAll('#' + wrapId + ' .filtro-chip').forEach(b => b.classList.remove('attivo'));
@@ -1381,7 +1612,17 @@ function renderChat(snap) {
   });
   ultimiDocsChat = docs;
   controllaNovita('chat', docs);
+  let giornoPrecedente = null;
   docs.forEach(m => {
+    // v2.2 — data sopra il primo messaggio di ogni giorno (come WhatsApp)
+    const giornoMsg = m.creato && m.creato.toDate ? isoLocale(m.creato.toDate()) : oggiISO();
+    if (giornoMsg !== giornoPrecedente) {
+      const sep = document.createElement('div');
+      sep.className = 'chat-giorno';
+      sep.innerHTML = '<span>' + escapeHtml(formatGiornoLungo(giornoMsg)) + '</span>';
+      cont.appendChild(sep);
+      giornoPrecedente = giornoMsg;
+    }
     const mio = m.autore === UTENTE;
     const el = document.createElement('div');
     el.className = 'msg ' + (mio ? 'mio' : 'suo');
@@ -1428,6 +1669,327 @@ setInterval(aggiornaAzioniMessaggiVisibili, 15000);
 
 
 // ============================================================
+// CONTATTI — v2.1
+// ============================================================
+const MEZZI = { telefono: '📞 Telefono', whatsapp: '💬 WhatsApp', mail: '✉️ Mail' };
+const ORDINE_MEZZI = ['telefono', 'whatsapp', 'mail'];
+const DIREZIONI = { entrata: '↙ In entrata', uscita: '↗ In uscita' };
+
+document.getElementById('contatto-data-input').value = oggiISO();
+
+function sistemaLink(testo) {
+  let url = (testo || '').trim();
+  if (!url) return null;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return url;
+}
+
+window.aggiungiContatto = async function() {
+  const chi = document.getElementById('contatto-chi-input').value.trim();
+  const perche = document.getElementById('contatto-perche-input').value.trim();
+  const data = document.getElementById('contatto-data-input').value;
+  if (!chi || !data) { document.getElementById('contatto-chi-input').focus(); return; }
+  const ora = document.getElementById('contatto-ora-input').value || null;
+  const mezzo = document.getElementById('contatto-mezzo').value;
+  const direzione = document.getElementById('contatto-direzione').dataset.valore === 'entrata' ? 'entrata' : 'uscita';
+  const link = sistemaLink(document.getElementById('contatto-link-input').value);
+  const riassunto = riassuntoNuovo;
+  document.getElementById('contatto-chi-input').value = '';
+  document.getElementById('contatto-ora-input').value = '';
+  document.getElementById('contatto-link-input').value = '';
+  svuotaCampo('contatto-perche-input');
+  riassuntoNuovo = ''; aggiornaBottoneRiassuntoNuovo();
+  await addDoc(collection(db, 'contatti'), { chi, perche, data, ora, mezzo, direzione, link, riassunto, autore: UTENTE, creato: serverTimestamp() });
+};
+window.eliminaContatto = async function(id) {
+  if (!confirm('Eliminare definitivamente questo contatto?')) return;
+  await deleteDoc(doc(db, 'contatti', id));
+};
+window.cambiaLinkContatto = async function(id, linkAttuale) {
+  const nuovo = prompt('Link di condivisione dei documenti (lascia vuoto per toglierlo):', linkAttuale || '');
+  if (nuovo === null) return;
+  await updateDoc(doc(db, 'contatti', id), { link: sistemaLink(nuovo) });
+};
+window.invertiDirezioneForm = function() {
+  const btn = document.getElementById('contatto-direzione');
+  const entrata = btn.dataset.valore !== 'entrata';
+  btn.dataset.valore = entrata ? 'entrata' : 'uscita';
+  btn.textContent = entrata ? '↙' : '↗';
+  btn.className = 'btn-direzione ' + (entrata ? 'dir-entrata' : 'dir-uscita');
+  btn.title = (entrata ? 'In entrata' : 'In uscita') + ' — clicca per cambiare';
+};
+
+// Riassunto: finestra che si apre al bisogno e si salva quando la chiudi
+let riassuntoAperto = null;
+let riassuntoNuovo = '';
+function aggiornaBottoneRiassuntoNuovo() {
+  const btn = document.getElementById('btn-riassunto-nuovo');
+  btn.classList.toggle('pieno', !!riassuntoNuovo);
+  btn.textContent = riassuntoNuovo ? '📝 Riassunto ✓' : '📝 Riassunto';
+}
+function mostraFinestraRiassunto(sottotitolo, testo) {
+  document.getElementById('riassunto-sotto').textContent = sottotitolo;
+  const ta = document.getElementById('riassunto-testo');
+  ta.value = testo || '';
+  document.getElementById('modale-riassunto').classList.add('aperto');
+  ta.focus();
+}
+window.apriRiassunto = function(c) {
+  riassuntoAperto = { id: c.id, originale: c.riassunto || '' };
+  mostraFinestraRiassunto((MEZZI[c.mezzo] || '') + ' ' + (c.direzione === 'entrata' ? '↙ in entrata da ' : '↗ in uscita verso ') + (c.chi || '') + ' — ' + formatGiornoSemplice(c.data), c.riassunto);
+};
+window.apriRiassuntoNuovo = function() {
+  riassuntoAperto = { nuovo: true, originale: riassuntoNuovo };
+  const chi = document.getElementById('contatto-chi-input').value.trim();
+  mostraFinestraRiassunto('Nuovo contatto' + (chi ? ' con ' + chi : '') + ' — si salva insieme al contatto quando premi Aggiungi', riassuntoNuovo);
+};
+window.chiudiRiassunto = async function() {
+  const modale = document.getElementById('modale-riassunto');
+  if (!modale.classList.contains('aperto')) return;
+  const testo = document.getElementById('riassunto-testo').value.replace(/\s+$/, '');
+  modale.classList.remove('aperto');
+  const aperto = riassuntoAperto; riassuntoAperto = null;
+  if (aperto && aperto.nuovo) { riassuntoNuovo = testo; aggiornaBottoneRiassuntoNuovo(); return; }
+  if (aperto && testo !== aperto.originale) {
+    try { await updateDoc(doc(db, 'contatti', aperto.id), { riassunto: testo }); }
+    catch (e) { console.error(e); alert('Riassunto non salvato, riprova.'); }
+  }
+};
+
+function cambiaDataContatto(id, dataAttuale, dataEl) {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.value = dataAttuale;
+  input.className = 'data-input-inline';
+  input.onchange = async () => { if (input.value) await updateDoc(doc(db, 'contatti', id), { data: input.value }); };
+  input.onblur = () => { if (input.parentNode) input.parentNode.replaceChild(dataEl, input); };
+  dataEl.parentNode.replaceChild(input, dataEl);
+  input.focus();
+}
+function cambiaOraContatto(id, oraAttuale, oraEl) {
+  const input = document.createElement('input');
+  input.type = 'time';
+  input.value = oraAttuale || '';
+  input.className = 'orario-input';
+  input.style.width = '84px'; input.style.padding = '2px 4px'; input.style.fontSize = '0.72rem';
+  input.onchange = async () => { await updateDoc(doc(db, 'contatti', id), { ora: input.value || null }); };
+  input.onblur = () => { if (input.parentNode) input.parentNode.replaceChild(oraEl, input); };
+  oraEl.parentNode.replaceChild(input, oraEl);
+  input.focus();
+}
+
+function renderContatti(snap) {
+  const cont = document.getElementById('contatti-lista');
+  cont.innerHTML = '';
+  const docs = [];
+  snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+  controllaNovita('contatti', docs);
+  docs.sort((a, b) => {
+    const k = (b.data || '').localeCompare(a.data || '');
+    if (k !== 0) return k;
+    const o = (b.ora || '').localeCompare(a.ora || '');
+    if (o !== 0) return o;
+    const ta = a.creato && a.creato.toMillis ? a.creato.toMillis() : Date.now();
+    const tb = b.creato && b.creato.toMillis ? b.creato.toMillis() : Date.now();
+    return tb - ta;
+  });
+  docs.forEach(c => {
+    const breve = formatDataBreve(c.data);
+    const mezzo = MEZZI[c.mezzo] ? c.mezzo : 'telefono';
+    const direzione = c.direzione === 'entrata' ? 'entrata' : 'uscita';
+    const sigla = c.autore || 'CI';
+    const el = document.createElement('div');
+    el.className = 'contatto';
+    el.setAttribute('data-autore', sigla);
+    el.setAttribute('data-search', [c.chi, c.perche, c.riassunto, MEZZI[mezzo], DIREZIONI[direzione]].join(' ').toLowerCase());
+    el.innerHTML = `
+      <div class="contatto-data" title="Clicca per cambiare la data">${breve.giorno} ${breve.mese} '${breve.anno}<small>${breve.sett}</small></div>
+      <div class="contatto-corpo">
+        <div class="contatto-riga1">
+          <span class="autore autore-${sigla.toLowerCase()}">${sigla}</span>
+          <span class="badge-contatto mezzo-${mezzo}" title="Clicca per cambiare (Telefono → WhatsApp → Mail)">${MEZZI[mezzo]}</span>
+          <span class="badge-freccia dir-${direzione}" title="${DIREZIONI[direzione].slice(2)} — clicca per invertire">${direzione === 'entrata' ? '↙' : '↗'}</span>
+          <span class="contatto-ora" title="Clicca per impostare l'ora">${c.ora ? '🕒 ' + escapeHtml(c.ora) : '🕒 + ora'}</span>
+          <span class="contatto-chi">${escapeHtml(c.chi || '')}</span>
+          <span class="contatto-azioni">
+            ${c.link ? '<a class="contatto-link" href="' + escapeHtml(c.link) + '" target="_blank" rel="noopener" title="Apri i documenti">📎 Documenti ↗</a><button class="contatto-mini btn-link" title="Modifica o togli il link">✎</button>' : '<button class="contatto-mini btn-link" title="Aggiungi un link di condivisione">📎 + link</button>'}
+            <button class="contatto-mini btn-riassunto${c.riassunto ? ' pieno' : ''}" title="${c.riassunto ? 'Apri il riassunto' : 'Scrivi un riassunto'}">📝 ${c.riassunto ? 'Riassunto' : '+ riassunto'}</button>
+          </span>
+        </div>
+        <div class="contatto-perche">${c.perche ? escapeHtml(c.perche) : ''}</div>
+      </div>
+      <button class="elimina" title="Elimina definitivamente">🗑</button>
+    `;
+    abilitaModifica(el.querySelector('.contatto-chi'), 'contatti', c.id, 'chi');
+    const percheEl = el.querySelector('.contatto-perche');
+    if (!c.perche) {
+      percheEl.setAttribute('data-vuoto', '1'); percheEl.style.opacity = '0.5'; percheEl.textContent = '+ perché';
+      percheEl.addEventListener('focus', () => { if (percheEl.getAttribute('data-vuoto')) { percheEl.textContent = ''; percheEl.removeAttribute('data-vuoto'); percheEl.style.opacity = ''; } });
+    }
+    abilitaModifica(percheEl, 'contatti', c.id, 'perche', true);
+    const badgeMezzo = el.querySelector('.badge-contatto');
+    const badgeDir = el.querySelector('.badge-freccia');
+    badgeMezzo.onclick = async () => {
+      const prossimo = ORDINE_MEZZI[(ORDINE_MEZZI.indexOf(mezzo) + 1) % ORDINE_MEZZI.length];
+      await updateDoc(doc(db, 'contatti', c.id), { mezzo: prossimo });
+    };
+    badgeDir.onclick = async () => {
+      await updateDoc(doc(db, 'contatti', c.id), { direzione: direzione === 'entrata' ? 'uscita' : 'entrata' });
+    };
+    el.querySelector('.btn-link').onclick = () => cambiaLinkContatto(c.id, c.link);
+    el.querySelector('.btn-riassunto').onclick = () => apriRiassunto(c);
+    const dataEl = el.querySelector('.contatto-data');
+    dataEl.onclick = () => cambiaDataContatto(c.id, c.data, dataEl);
+    const oraEl = el.querySelector('.contatto-ora');
+    oraEl.onclick = () => cambiaOraContatto(c.id, c.ora, oraEl);
+    el.querySelector('.elimina').onclick = () => eliminaContatto(c.id);
+    cont.appendChild(el);
+  });
+  applicaFiltroAutoreCorrente('contatti-lista', 'filtri-autore-contatti');
+}
+
+// ============================================================
+// GIORNO DELLA SETTIMANA ACCANTO AI CAMPI DATA — v2.1
+// ============================================================
+function aggiornaEtichettaSett(idInput) {
+  const input = document.getElementById(idInput);
+  const etichetta = document.getElementById(idInput + '-sett');
+  if (!input || !etichetta) return;
+  etichetta.textContent = input.value ? GIORNI_SETT[new Date(input.value + 'T00:00:00').getDay()] : '';
+}
+['scadenza-data-input', 'diario-data-input', 'link-data-input', 'contatto-data-input'].forEach(id => {
+  const input = document.getElementById(id);
+  input.addEventListener('input', () => aggiornaEtichettaSett(id));
+  input.addEventListener('change', () => aggiornaEtichettaSett(id));
+  aggiornaEtichettaSett(id);
+});
+
+// Caselle che vanno a capo
+attivaCampoMultiriga('diario-input', () => aggiungiDiario());
+attivaCampoMultiriga('nota-input', () => aggiungiNota());
+attivaCampoMultiriga('appunto-input', () => aggiungiAppunto());
+attivaCampoMultiriga('contatto-perche-input', () => aggiungiContatto());
+
+// ============================================================
+// CALENDARIO A COMPARSA — v2.1
+// ============================================================
+const INTEST_CAL = ['LU', 'MA', 'ME', 'GI', 'VE', 'SA', 'DO'];
+let meseCal = new Date(); meseCal.setDate(1); meseCal.setHours(0, 0, 0, 0);
+
+function disegnaCalendario() {
+  const pannello = document.getElementById('calendario-pannello');
+  if (!pannello.classList.contains('aperto')) return;
+  document.getElementById('cal-mese').textContent = MESI_LUNGHI[meseCal.getMonth()] + ' ' + meseCal.getFullYear();
+  const griglia = document.getElementById('cal-griglia');
+  griglia.innerHTML = '';
+  INTEST_CAL.forEach((g, i) => {
+    const el = document.createElement('div');
+    el.className = 'cal-intest' + (i === 6 ? ' festivo' : '');
+    el.textContent = g;
+    griglia.appendChild(el);
+  });
+  const scadenzePerGiorno = {};
+  ultimiDocsScadenze.forEach(sc => { if (!sc.fatto && sc.data) (scadenzePerGiorno[sc.data] ||= []).push(sc.testo); });
+  const oggi = oggiISO();
+  const offset = (meseCal.getDay() + 6) % 7;
+  const inizio = new Date(meseCal); inizio.setDate(1 - offset);
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(inizio); d.setDate(inizio.getDate() + i);
+    if (i >= 35 && d.getMonth() !== meseCal.getMonth()) break;
+    const iso = isoLocale(d);
+    const el = document.createElement('div');
+    let classi = 'cal-giorno';
+    if (d.getMonth() !== meseCal.getMonth()) classi += ' fuori';
+    if (d.getDay() === 0) classi += ' festivo';
+    if (iso === oggi) classi += ' oggi';
+    if (scadenzePerGiorno[iso]) { classi += ' con-scadenza'; el.title = scadenzePerGiorno[iso].join('\n'); }
+    el.className = classi;
+    el.textContent = d.getDate();
+    griglia.appendChild(el);
+  }
+}
+window.apriChiudiCalendario = function() {
+  document.getElementById('calendario-pannello').classList.toggle('aperto');
+  disegnaCalendario();
+};
+window.spostaMese = function(delta) { meseCal.setMonth(meseCal.getMonth() + delta); disegnaCalendario(); };
+window.vaiAOggi = function() { meseCal = new Date(); meseCal.setDate(1); meseCal.setHours(0, 0, 0, 0); disegnaCalendario(); };
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('modale-riassunto').classList.contains('aperto')) { chiudiRiassunto(); return; }
+  const pannello = document.getElementById('calendario-pannello');
+  if (pannello.classList.contains('aperto')) apriChiudiCalendario();
+});
+
+// ============================================================
+// BACKUP / RIPRISTINO — v2.1
+// ============================================================
+const COLLEZIONI_BACKUP = ['scadenze', 'diario', 'note', 'appunti', 'chat', 'link', 'contatti', 'categorie'];
+
+function versoFile(v) {
+  if (v && typeof v.toMillis === 'function') return { __ts: v.toMillis() };
+  if (Array.isArray(v)) return v.map(versoFile);
+  if (v && typeof v === 'object') { const o = {}; for (const k in v) o[k] = versoFile(v[k]); return o; }
+  return v;
+}
+function daFile(v) {
+  if (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 1 && typeof v.__ts === 'number') return Timestamp.fromMillis(v.__ts);
+  if (Array.isArray(v)) return v.map(daFile);
+  if (v && typeof v === 'object') { const o = {}; for (const k in v) o[k] = daFile(v[k]); return o; }
+  return v;
+}
+
+window.faiBackup = async function() {
+  const btn = document.getElementById('btn-backup');
+  btn.disabled = true; btn.textContent = '💾 Attendi…';
+  try {
+    const dati = { app: 'Scrivania Condivisa', versione: '2.2', creato: new Date().toISOString(), fattoDa: nomeCompleto(UTENTE), collezioni: {} };
+    let totale = 0;
+    for (const nome of COLLEZIONI_BACKUP) {
+      const snap = await getDocs(collection(db, nome));
+      dati.collezioni[nome] = {};
+      snap.docs.forEach(d => { dati.collezioni[nome][d.id] = versoFile(d.data()); totale++; });
+    }
+    const blob = new Blob([JSON.stringify(dati, null, 1)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'scrivania-condivisa-backup-' + oggiISO() + '.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+    alert('Backup completato: ' + totale + ' elementi salvati nel file.');
+  } catch (e) {
+    console.error(e);
+    alert('Backup non riuscito, riprova. (' + e.message + ')');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 Backup';
+  }
+};
+
+window.ripristinaBackup = async function(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  let dati;
+  try { dati = JSON.parse(await file.text()); } catch (e) { alert('Questo file non è un backup valido.'); return; }
+  if (!dati || dati.app !== 'Scrivania Condivisa' || !dati.collezioni) { alert('Questo file non è un backup della Scrivania Condivisa.'); return; }
+  let totale = 0;
+  for (const nome of COLLEZIONI_BACKUP) totale += Object.keys(dati.collezioni[nome] || {}).length;
+  const quando = dati.creato ? new Date(dati.creato).toLocaleString('it-IT') : 'data sconosciuta';
+  if (!confirm('Ripristinare il backup del ' + quando + ' (' + totale + ' elementi)?\n\nGli elementi del backup verranno rimessi com\'erano, anche per la collega. Quello che è stato aggiunto dopo il backup NON viene cancellato.')) return;
+  try {
+    let fatti = 0;
+    for (const nome of COLLEZIONI_BACKUP) {
+      const voci = dati.collezioni[nome] || {};
+      for (const id of Object.keys(voci)) { await setDoc(doc(db, nome, id), daFile(voci[id])); fatti++; }
+    }
+    alert('Ripristino completato: ' + fatti + ' elementi.');
+  } catch (e) {
+    console.error(e);
+    alert('Ripristino interrotto, riprova. (' + e.message + ')');
+  }
+};
+
+// ============================================================
 // STAMPA / DOWNLOAD
 // ============================================================
 window.stampaVista = function() { window.print(); };
@@ -1459,12 +2021,13 @@ let ascoltoAvviato = false;
 function avviaAscoltoDati() {
   if (ascoltoAvviato) return;
   ascoltoAvviato = true;
-  onSnapshot(collection(db, 'scadenze'), snap => { renderScadenze(snap); aggiornaRicerca(); });
+  onSnapshot(collection(db, 'scadenze'), snap => { renderScadenze(snap); aggiornaRicerca(); disegnaCalendario(); });
   onSnapshot(collection(db, 'diario'), snap => { renderDiario(snap); aggiornaRicerca(); });
   onSnapshot(collection(db, 'note'), snap => { renderNote(snap); aggiornaRicerca(); });
   onSnapshot(collection(db, 'appunti'), snap => { renderAppunti(snap); aggiornaRicerca(); });
   onSnapshot(collection(db, 'chat'), snap => { renderChat(snap); aggiornaRicerca(); });
   onSnapshot(collection(db, 'link'), snap => { renderLink(snap); aggiornaRicerca(); });
+  onSnapshot(collection(db, 'contatti'), snap => { renderContatti(snap); aggiornaRicerca(); });
   document.getElementById('stato-connessione').textContent = nomeCompleto(UTENTE) + ' · Collegata a Firebase';
 }
 function aggiornaRicerca() {
@@ -1482,7 +2045,7 @@ window.mostra = function(id, btn) {
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (['diario', 'note', 'appunti', 'chat'].includes(id)) segnaVisto(id);
+  if (['diario', 'note', 'appunti', 'chat', 'contatti'].includes(id)) segnaVisto(id);
   if (id === 'chat') segnaMessaggiComeVisti(Array.from(document.querySelectorAll('#chat-thread .msg')).map(() => ({})));
 };
 
@@ -1502,6 +2065,7 @@ window.cerca = function(testo) {
   if (q === '') {
     hint.style.display = 'none';
     document.querySelectorAll('[data-search]').forEach(el => el.style.display = '');
+    document.querySelectorAll('.chat-giorno').forEach(e => e.style.display = '');
     tabs.forEach(t => t.disabled = false);
     panels.forEach(p => { p.classList.remove('active'); p.style.minHeight = ''; });
     const attivaPrima = document.querySelector('nav.tabs button.active') || document.querySelector('nav.tabs button');
@@ -1510,10 +2074,12 @@ window.cerca = function(testo) {
     applicaFiltroLink();
     applicaFiltroAutoreCorrente('note-lista', 'filtri-autore-note');
     applicaFiltroAutoreCorrente('appunti-lista', 'filtri-autore-appunti');
+    applicaFiltroAutoreCorrente('contatti-lista', 'filtri-autore-contatti');
     return;
   }
 
   tabs.forEach(t => { t.classList.remove('active'); t.disabled = true; });
+  document.querySelectorAll('.chat-giorno').forEach(e => e.style.display = 'none');
 
   let trovatiTotali = 0;
   panels.forEach(panel => {

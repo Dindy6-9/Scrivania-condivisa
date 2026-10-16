@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Scrivania Condivisa — v2.2 — data nella chat — Cinzia & Cecilia — a capo, Contatti, backup, giorni, calendario -->
+<!-- Scrivania Condivisa — v2.3 — To Do con categorie — data nella chat — Cinzia & Cecilia — a capo, Contatti, backup, giorni, calendario -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -368,6 +368,30 @@
     font-size: 0.9rem; color: var(--ink-soft); flex-shrink: 0; padding: 0 4px;
   }
   .diario-entry .elimina:hover { color: var(--brick); }
+  /* v2.3 — To Do raggruppati per categoria */
+  .todo-gruppo { margin-bottom: 14px; }
+  .todo-gruppo-titolo {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 0.95rem; color: var(--forest-dark);
+    border-bottom: 1.5px solid var(--forest); padding-bottom: 3px; margin-bottom: 5px;
+  }
+  .todo-gruppo-conta {
+    font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 700; color: #fff;
+    background: var(--forest); border-radius: 10px; padding: 0 7px;
+  }
+  .todo-testo { flex: 1; min-width: 0; }
+  .todo-quando { font-size: 0.66rem; color: var(--ink-soft); font-weight: 500; white-space: nowrap; align-self: center; }
+  .diario-entry .badge-categoria { align-self: center; }
+  .todo-cat-field { flex: 0 0 auto; }
+  @media (max-width: 600px) {
+    #todo-lista .diario-entry, #todo-completati .diario-entry { flex-wrap: wrap; }
+    .todo-testo { flex: 1 1 calc(100% - 110px); }
+    #todo-lista .diario-entry .badge-categoria, #todo-completati .diario-entry .badge-categoria,
+    #todo-completati .todo-quando { margin-left: 56px; }
+  }
+  .titolo-sezione-completate { margin-top: 28px; }
+  #todo-lista:empty::after { content: "Nessun to do per ora"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
+  #todo-completati:empty::after { content: "Nessun to do completato"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
   #note-lista:empty::after, #diario-lista:empty::after, #appunti-lista:empty::after {
     content: "Niente qui per ora"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic;
   }
@@ -641,7 +665,7 @@
 
     <div class="search-row">
       <div class="search-input-wrap">
-        <input type="text" id="ricerca" placeholder="Cerca in scadenze, diario, note, chat, appunti, link, contatti…" oninput="cerca(this.value)">
+        <input type="text" id="ricerca" placeholder="Cerca in to do, scadenze, diario, note, chat, appunti, link, contatti…" oninput="cerca(this.value)">
         <button class="btn-clear-ricerca" onclick="pulisciRicerca()" title="Cancella ricerca">✕</button>
       </div>
       <div class="search-hint" id="search-hint" style="display:none;"></div>
@@ -655,7 +679,8 @@
     </div>
 
     <nav class="tabs">
-      <button class="active" onclick="mostra('scadenze', this)">Scadenze</button>
+      <button class="active" onclick="mostra('todo', this)">To Do<span class="puntino-novita" id="novita-todo" style="display:none;"></span></button>
+      <button onclick="mostra('scadenze', this)">Scadenze</button>
       <button onclick="mostra('diario', this)">Diario<span class="puntino-novita" id="novita-diario" style="display:none;"></span></button>
       <button onclick="mostra('note', this)">Note<span class="puntino-novita" id="novita-note" style="display:none;"></span></button>
       <button onclick="mostra('appunti', this)">Appunti<span class="puntino-novita" id="novita-appunti" style="display:none;"></span></button>
@@ -665,7 +690,21 @@
       <button onclick="mostra('completate', this)">Completate</button>
     </nav>
 
-    <section class="panel active" id="scadenze">
+    <section class="panel active" id="todo">
+      <h2 class="panel-title">To Do</h2>
+      <div class="filtri-categoria" id="filtri-todo"></div>
+      <div id="todo-lista"></div>
+      <div class="add-row">
+        <input type="text" id="todo-input" placeholder="Nuovo to do…" style="flex:1;" onkeydown="if(event.key==='Enter') aggiungiTodo()">
+        <select id="todo-categoria" class="categoria-select todo-cat-field" onchange="gestisciNuovaCategoria(this, 'todo')">
+          <option value="Altro">Altro</option>
+          <option value="__nuova__">+ Nuova categoria…</option>
+        </select>
+        <button onclick="aggiungiTodo()">Aggiungi</button>
+      </div>
+    </section>
+
+    <section class="panel" id="scadenze">
       <h2 class="panel-title">Prossime scadenze</h2>
       <div class="filtri-categoria" id="filtri-scadenze"></div>
       <div id="scadenze-attive"></div>
@@ -792,9 +831,11 @@
     <section class="panel" id="completate">
       <h2 class="panel-title">Scadenze completate</h2>
       <div id="scadenze-completate"></div>
+      <h2 class="panel-title titolo-sezione-completate">To Do completati</h2>
+      <div id="todo-completati"></div>
     </section>
 
-    <footer class="note">Scrivania Condivisa · v2.2 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
+    <footer class="note">Scrivania Condivisa · v2.3 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
   </div>
 
   <button class="btn-calendario" id="btn-calendario" onclick="apriChiudiCalendario()" title="Calendario">📅</button>
@@ -1018,6 +1059,12 @@ document.getElementById('link-data-input').value = oggiISO();
 
 let LISTA_CATEGORIE_SCADENZE = ['Bandi', 'Contabili', 'Admin', 'Altro'];
 let LISTA_CATEGORIE_LINK = ['Generali', 'Fornitori', 'Altro'];
+let LISTA_CATEGORIE_TODO = ['Altro'];
+let filtroAttivoTodo = null;
+let ultimiDocsTodo = [];
+// v2.3 — una sola regola per sapere quale lista/collezione usare
+function listaCategorieDi(tipo) { return tipo === 'scadenze' ? LISTA_CATEGORIE_SCADENZE : (tipo === 'todo' ? LISTA_CATEGORIE_TODO : LISTA_CATEGORIE_LINK); }
+function collezioneDi(tipo) { return tipo === 'scadenze' ? 'scadenze' : (tipo === 'todo' ? 'todos' : 'link'); }
 let filtroAttivoScadenze = null;
 let filtroAttivoLink = null;
 let ultimiDocsScadenze = [];
@@ -1029,6 +1076,7 @@ async function inizializzaListaCategorie(tipo, listaDefault) {
   onSnapshot(refDoc, async (snap) => {
     if (snap.exists() && Array.isArray(snap.data().lista)) {
       if (tipo === 'scadenze') { LISTA_CATEGORIE_SCADENZE = snap.data().lista; aggiornaSelectCategoria('scadenza-categoria', LISTA_CATEGORIE_SCADENZE); renderFiltriScadenze(ultimiDocsScadenze); }
+      else if (tipo === 'todo') { LISTA_CATEGORIE_TODO = snap.data().lista; aggiornaSelectCategoria('todo-categoria', LISTA_CATEGORIE_TODO); disegnaTodo(); }
       else { LISTA_CATEGORIE_LINK = snap.data().lista; aggiornaSelectCategoria('link-categoria', LISTA_CATEGORIE_LINK); renderFiltriLink(ultimiDocsLink); }
     } else {
       try { await setDoc(refDoc, { lista: listaDefault }); } catch (e) {}
@@ -1051,6 +1099,7 @@ function aggiornaSelectCategoria(selectId, lista) {
 }
 inizializzaListaCategorie('scadenze', LISTA_CATEGORIE_SCADENZE);
 inizializzaListaCategorie('link', LISTA_CATEGORIE_LINK);
+inizializzaListaCategorie('todo', LISTA_CATEGORIE_TODO);
 
 window.toggleAnticipo = function(checkbox) { document.getElementById('anticipo-wrap').style.display = checkbox.checked ? 'flex' : 'none'; };
 window.cambiaAnticipo = function(delta) {
@@ -1067,7 +1116,7 @@ window.gestisciNuovaCategoria = async function(select, tipo) {
     const nome = prompt('Nome della nuova categoria:');
     if (nome && nome.trim() !== '') {
       const nomeFinale = nome.trim();
-      const listaAttuale = tipo === 'scadenze' ? LISTA_CATEGORIE_SCADENZE : LISTA_CATEGORIE_LINK;
+      const listaAttuale = listaCategorieDi(tipo);
       if (!listaAttuale.includes(nomeFinale)) {
         const nuovaOpz = document.createElement('option');
         nuovaOpz.value = nomeFinale;
@@ -1085,7 +1134,7 @@ window.gestisciNuovaCategoria = async function(select, tipo) {
 
 // Gestione categorie: rinomina o elimina, con aggiornamento automatico di tutte le scadenze/link che la usano
 window.gestisciCategorie = async function(tipo) {
-  const lista = tipo === 'scadenze' ? LISTA_CATEGORIE_SCADENZE : LISTA_CATEGORIE_LINK;
+  const lista = listaCategorieDi(tipo);
   const elenco = lista.map((c, i) => (i + 1) + '. ' + c).join('\n');
   const scelta = prompt('Quale categoria vuoi modificare o eliminare?\n\n' + elenco + '\n\nScrivi il numero:');
   if (!scelta) return;
@@ -1094,11 +1143,11 @@ window.gestisciCategorie = async function(tipo) {
   const categoriaScelta = lista[indice];
   if (categoriaScelta === 'Altro') { alert('La categoria "Altro" non si può modificare né eliminare.'); return; }
 
-  const azione = prompt('Categoria "' + categoriaScelta + '":\n\n- Scrivi il NUOVO NOME per rinominarla\n- Scrivi ELIMINA per cancellarla (le scadenze/link che la usano passeranno ad "Altro")\n- Lascia vuoto per annullare');
+  const azione = prompt('Categoria "' + categoriaScelta + '":\n\n- Scrivi il NUOVO NOME per rinominarla\n- Scrivi ELIMINA per cancellarla (le voci che la usano passeranno ad "Altro")\n- Lascia vuoto per annullare');
   if (!azione || azione.trim() === '') return;
 
   const refDoc = doc(db, 'categorie', tipo);
-  const collezione = tipo === 'scadenze' ? 'scadenze' : 'link';
+  const collezione = collezioneDi(tipo);
 
   if (azione.trim().toUpperCase() === 'ELIMINA') {
     if (!confirm('Confermi di voler eliminare la categoria "' + categoriaScelta + '"? Le voci che la usano passeranno ad "Altro".')) return;
@@ -1119,7 +1168,7 @@ window.gestisciCategorie = async function(tipo) {
 
 // Cambiare la categoria di una scadenza/link già creati, cliccando sul suo badge
 window.cambiaCategoriaVoce = function(id, categoriaAttuale, tipo, badgeEl) {
-  const lista = tipo === 'scadenze' ? LISTA_CATEGORIE_SCADENZE : LISTA_CATEGORIE_LINK;
+  const lista = listaCategorieDi(tipo);
   const select = document.createElement('select');
   select.className = 'categoria-select';
   lista.forEach(cat => {
@@ -1129,7 +1178,7 @@ window.cambiaCategoriaVoce = function(id, categoriaAttuale, tipo, badgeEl) {
     select.appendChild(opz);
   });
   select.onchange = async () => {
-    const collezione = tipo === 'scadenze' ? 'scadenze' : 'link';
+    const collezione = collezioneDi(tipo);
     await updateDoc(doc(db, collezione, id), { categoria: select.value });
   };
   select.onblur = () => { if (select.parentNode) select.parentNode.replaceChild(badgeEl, select); };
@@ -1242,6 +1291,7 @@ window.attivaAllarmeScadenza = function(id, metaEl) {
 };
 
 window.filtraCategoria = function(cat, tipo) {
+  if (tipo === 'todo') { filtroAttivoTodo = cat; disegnaTodo(); return; }
   if (tipo === 'scadenze') { filtroAttivoScadenze = cat; renderFiltriScadenze(ultimiDocsScadenze); applicaFiltroScadenze(); }
   else { filtroAttivoLink = cat; renderFiltriLink(ultimiDocsLink); applicaFiltroLink(); }
 };
@@ -1669,6 +1719,127 @@ setInterval(aggiornaAzioniMessaggiVisibili, 15000);
 
 
 // ============================================================
+// TO DO CON CATEGORIE — v2.3
+// ============================================================
+window.aggiungiTodo = async function() {
+  const input = document.getElementById('todo-input');
+  const testo = input.value.trim();
+  if (!testo) { input.focus(); return; }
+  let categoria = document.getElementById('todo-categoria').value;
+  if (!categoria || categoria === '__nuova__') categoria = 'Altro';
+  input.value = '';
+  await addDoc(collection(db, 'todos'), { testo, categoria, fatto: false, fattoIl: null, autore: UTENTE, creato: serverTimestamp() });
+  input.focus();
+};
+// Spuntare sposta il to do in "Completate"; togliendo la spunta torna nel To Do
+window.toggleTodo = async function(id, fattoAttuale) {
+  await updateDoc(doc(db, 'todos', id), { fatto: !fattoAttuale, fattoIl: !fattoAttuale ? serverTimestamp() : null });
+};
+window.eliminaTodo = async function(id) {
+  if (!confirm('Eliminare definitivamente questo to do?')) return;
+  await deleteDoc(doc(db, 'todos', id));
+};
+
+function renderTodos(snap) {
+  const docs = [];
+  snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+  ultimiDocsTodo = docs;
+  controllaNovita('todo', docs);
+  if (document.getElementById('todo').classList.contains('active')) segnaVisto('todo');
+  disegnaTodo();
+}
+
+function rigaTodo(t) {
+  const sigla = t.autore || 'CI';
+  const cat = t.categoria || 'Altro';
+  const el = document.createElement('div');
+  el.className = 'diario-entry';
+  el.setAttribute('data-search', ((t.testo || '') + ' ' + cat).toLowerCase());
+  const quando = t.fatto && t.fattoIl && t.fattoIl.toDate ? '<span class="todo-quando">fatto il ' + formatGiornoSemplice(isoLocale(t.fattoIl.toDate())) + '</span>' : '';
+  el.innerHTML = `
+    <div class="checkbox ${t.fatto ? 'checked' : ''}" title="${t.fatto ? 'Togli la spunta per rimetterlo nel To Do' : 'Segna come fatto (va in Completate)'}">${t.fatto ? '✓' : ''}</div>
+    <span class="autore autore-${sigla.toLowerCase()}">${sigla}</span>
+    <span class="todo-testo">${escapeHtml(t.testo || '')}</span>
+    ${quando}
+    <span class="badge-categoria badge-cat-cliccabile" title="Clicca per cambiare categoria">${escapeHtml(cat)}</span>
+    <button class="elimina" title="Elimina definitivamente">🗑</button>
+  `;
+  el.querySelector('.checkbox').onclick = () => toggleTodo(t.id, !!t.fatto);
+  abilitaModifica(el.querySelector('.todo-testo'), 'todos', t.id, 'testo');
+  const badge = el.querySelector('.badge-cat-cliccabile');
+  badge.onclick = () => cambiaCategoriaVoce(t.id, cat, 'todo', badge);
+  el.querySelector('.elimina').onclick = () => eliminaTodo(t.id);
+  return el;
+}
+
+function disegnaTodo() {
+  const cont = document.getElementById('todo-lista');
+  const contFatti = document.getElementById('todo-completati');
+  if (!cont || !contFatti) return;
+  cont.innerHTML = ''; contFatti.innerHTML = '';
+  const ms = (x) => x && x.toMillis ? x.toMillis() : Date.now();
+  const daFare = ultimiDocsTodo.filter(t => !t.fatto).sort((a, b) => ms(a.creato) - ms(b.creato));
+  const fatti = ultimiDocsTodo.filter(t => t.fatto).sort((a, b) => ms(b.fattoIl) - ms(a.fattoIl));
+
+  // Ordine delle categorie: quello della lista (Altro in fondo), più eventuali categorie trovate nei to do
+  const ordine = [...LISTA_CATEGORIE_TODO.filter(c => c !== 'Altro')];
+  daFare.forEach(t => { const c = t.categoria || 'Altro'; if (c !== 'Altro' && !ordine.includes(c)) ordine.push(c); });
+  ordine.push('Altro');
+
+  renderFiltriTodo(ordine, daFare);
+
+  ordine.forEach(cat => {
+    const voci = daFare.filter(t => (t.categoria || 'Altro') === cat);
+    if (!voci.length) return;
+    if (filtroAttivoTodo && filtroAttivoTodo !== cat) return;
+    const gruppo = document.createElement('div');
+    gruppo.className = 'todo-gruppo';
+    gruppo.setAttribute('data-categoria', cat);
+    const titolo = document.createElement('div');
+    titolo.className = 'todo-gruppo-titolo';
+    titolo.innerHTML = escapeHtml(cat) + ' <span class="todo-gruppo-conta">' + voci.length + '</span>';
+    gruppo.appendChild(titolo);
+    voci.forEach(t => gruppo.appendChild(rigaTodo(t)));
+    cont.appendChild(gruppo);
+  });
+  fatti.forEach(t => contFatti.appendChild(rigaTodo(t)));
+  aggiornaRicerca();
+}
+
+function renderFiltriTodo(ordine, daFare) {
+  const wrap = document.getElementById('filtri-todo');
+  wrap.innerHTML = '';
+  if (filtroAttivoTodo && !ordine.includes(filtroAttivoTodo)) filtroAttivoTodo = null;
+  const tutte = document.createElement('button');
+  tutte.className = 'filtro-chip' + (!filtroAttivoTodo ? ' attivo' : '');
+  tutte.textContent = 'Tutte';
+  tutte.onclick = () => filtraCategoria(null, 'todo');
+  wrap.appendChild(tutte);
+  ordine.forEach(cat => {
+    const n = daFare.filter(t => (t.categoria || 'Altro') === cat).length;
+    if (!n) return;
+    const b = document.createElement('button');
+    b.className = 'filtro-chip' + (filtroAttivoTodo === cat ? ' attivo' : '');
+    b.textContent = cat + ' (' + n + ')';
+    b.onclick = () => filtraCategoria(cat, 'todo');
+    wrap.appendChild(b);
+  });
+  const gear = document.createElement('button');
+  gear.className = 'filtro-chip'; gear.title = 'Rinomina o elimina categorie';
+  gear.textContent = '⚙'; gear.onclick = () => gestisciCategorie('todo');
+  wrap.appendChild(gear);
+}
+
+// In ricerca: nasconde i titoli delle categorie che non hanno risultati
+function sistemaGruppiTodoInRicerca(attiva) {
+  document.querySelectorAll('#todo-lista .todo-gruppo').forEach(g => {
+    if (!attiva) { g.style.display = ''; return; }
+    const visibili = Array.from(g.querySelectorAll('[data-search]')).some(el => el.style.display !== 'none');
+    g.style.display = visibili ? '' : 'none';
+  });
+}
+
+// ============================================================
 // CONTATTI — v2.1
 // ============================================================
 const MEZZI = { telefono: '📞 Telefono', whatsapp: '💬 WhatsApp', mail: '✉️ Mail' };
@@ -1924,7 +2095,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================
 // BACKUP / RIPRISTINO — v2.1
 // ============================================================
-const COLLEZIONI_BACKUP = ['scadenze', 'diario', 'note', 'appunti', 'chat', 'link', 'contatti', 'categorie'];
+const COLLEZIONI_BACKUP = ['todos', 'scadenze', 'diario', 'note', 'appunti', 'chat', 'link', 'contatti', 'categorie'];
 
 function versoFile(v) {
   if (v && typeof v.toMillis === 'function') return { __ts: v.toMillis() };
@@ -1943,7 +2114,7 @@ window.faiBackup = async function() {
   const btn = document.getElementById('btn-backup');
   btn.disabled = true; btn.textContent = '💾 Attendi…';
   try {
-    const dati = { app: 'Scrivania Condivisa', versione: '2.2', creato: new Date().toISOString(), fattoDa: nomeCompleto(UTENTE), collezioni: {} };
+    const dati = { app: 'Scrivania Condivisa', versione: '2.3', creato: new Date().toISOString(), fattoDa: nomeCompleto(UTENTE), collezioni: {} };
     let totale = 0;
     for (const nome of COLLEZIONI_BACKUP) {
       const snap = await getDocs(collection(db, nome));
@@ -2021,6 +2192,7 @@ let ascoltoAvviato = false;
 function avviaAscoltoDati() {
   if (ascoltoAvviato) return;
   ascoltoAvviato = true;
+  onSnapshot(collection(db, 'todos'), snap => { renderTodos(snap); });
   onSnapshot(collection(db, 'scadenze'), snap => { renderScadenze(snap); aggiornaRicerca(); disegnaCalendario(); });
   onSnapshot(collection(db, 'diario'), snap => { renderDiario(snap); aggiornaRicerca(); });
   onSnapshot(collection(db, 'note'), snap => { renderNote(snap); aggiornaRicerca(); });
@@ -2045,7 +2217,7 @@ window.mostra = function(id, btn) {
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (['diario', 'note', 'appunti', 'chat', 'contatti'].includes(id)) segnaVisto(id);
+  if (['todo', 'diario', 'note', 'appunti', 'chat', 'contatti'].includes(id)) segnaVisto(id);
   if (id === 'chat') segnaMessaggiComeVisti(Array.from(document.querySelectorAll('#chat-thread .msg')).map(() => ({})));
 };
 
@@ -2066,6 +2238,7 @@ window.cerca = function(testo) {
     hint.style.display = 'none';
     document.querySelectorAll('[data-search]').forEach(el => el.style.display = '');
     document.querySelectorAll('.chat-giorno').forEach(e => e.style.display = '');
+    sistemaGruppiTodoInRicerca(false);
     tabs.forEach(t => t.disabled = false);
     panels.forEach(p => { p.classList.remove('active'); p.style.minHeight = ''; });
     const attivaPrima = document.querySelector('nav.tabs button.active') || document.querySelector('nav.tabs button');
@@ -2091,6 +2264,7 @@ window.cerca = function(testo) {
       if (match) trovatiInPanel++;
     });
     trovatiTotali += trovatiInPanel;
+    if (panel.id === 'todo') sistemaGruppiTodoInRicerca(true);
     if (trovatiInPanel > 0) { panel.classList.add('active'); panel.style.minHeight = '0'; }
     else { panel.classList.remove('active'); panel.style.minHeight = ''; }
   });

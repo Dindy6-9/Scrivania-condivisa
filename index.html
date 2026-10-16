@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Scrivania Condivisa — v2.3 — To Do con categorie — data nella chat — Cinzia & Cecilia — a capo, Contatti, backup, giorni, calendario -->
+<!-- Scrivania Condivisa — v2.4 — To Do compatto, completati per categoria — data nella chat — Cinzia & Cecilia — a capo, Contatti, backup, giorni, calendario -->
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -383,11 +383,31 @@
   .todo-quando { font-size: 0.66rem; color: var(--ink-soft); font-weight: 500; white-space: nowrap; align-self: center; }
   .diario-entry .badge-categoria { align-self: center; }
   .todo-cat-field { flex: 0 0 auto; }
+  /* v2.4 — To Do compatto: caratteri più piccoli e righe più strette */
+  #todo .panel-title { font-size: 0.95rem; margin-bottom: 8px; }
+  #filtri-todo { gap: 4px; margin-bottom: 8px; }
+  #filtri-todo .filtro-chip { padding: 1px 8px; font-size: 0.7rem; }
+  .todo-gruppo { margin-bottom: 6px; }
+  .todo-gruppo-titolo { font-size: 0.8rem; gap: 6px; padding-bottom: 1px; margin-bottom: 1px; border-bottom-width: 1px; }
+  .todo-gruppo-conta { font-size: 0.6rem; padding: 0 5px; line-height: 1.5; }
+  #todo-lista .diario-entry, #todo-completati .diario-entry {
+    padding: 1px 6px; gap: 6px; margin-bottom: 0; font-size: 0.78rem; line-height: 1.3; align-items: center;
+  }
+  #todo-lista .diario-entry .checkbox, #todo-completati .diario-entry .checkbox {
+    width: 15px; height: 15px; border-width: 2px; margin-top: 0; font-size: 0.58rem;
+  }
+  #todo-lista .autore, #todo-completati .autore { width: 17px; height: 17px; font-size: 0.52rem; }
+  #todo-lista .badge-categoria, #todo-completati .badge-categoria { font-size: 0.6rem; padding: 0 5px; line-height: 1.4; }
+  #todo-lista .diario-entry .elimina, #todo-completati .diario-entry .elimina { font-size: 0.75rem; padding: 0 2px; }
+  #todo-completati .todo-quando { font-size: 0.6rem; }
+  #todo .add-row { margin-top: 8px; }
+  #todo .add-row input, #todo .add-row select { padding: 6px 10px; font-size: 0.8rem; }
+  #todo .add-row button { padding: 6px 14px; font-size: 0.8rem; }
   @media (max-width: 600px) {
     #todo-lista .diario-entry, #todo-completati .diario-entry { flex-wrap: wrap; }
     .todo-testo { flex: 1 1 calc(100% - 110px); }
     #todo-lista .diario-entry .badge-categoria, #todo-completati .diario-entry .badge-categoria,
-    #todo-completati .todo-quando { margin-left: 56px; }
+    #todo-completati .todo-quando { margin-left: 44px; }
   }
   .titolo-sezione-completate { margin-top: 28px; }
   #todo-lista:empty::after { content: "Nessun to do per ora"; font-size: 0.82rem; color: var(--ink-soft); font-style: italic; }
@@ -835,7 +855,7 @@
       <div id="todo-completati"></div>
     </section>
 
-    <footer class="note">Scrivania Condivisa · v2.3 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
+    <footer class="note">Scrivania Condivisa · v2.4 · Cinzia &amp; Cecilia · dati salvati su Firebase in tempo reale</footer>
   </div>
 
   <button class="btn-calendario" id="btn-calendario" onclick="apriChiudiCalendario()" title="Calendario">📅</button>
@@ -1788,21 +1808,28 @@ function disegnaTodo() {
 
   renderFiltriTodo(ordine, daFare);
 
-  ordine.forEach(cat => {
-    const voci = daFare.filter(t => (t.categoria || 'Altro') === cat);
-    if (!voci.length) return;
-    if (filtroAttivoTodo && filtroAttivoTodo !== cat) return;
-    const gruppo = document.createElement('div');
-    gruppo.className = 'todo-gruppo';
-    gruppo.setAttribute('data-categoria', cat);
-    const titolo = document.createElement('div');
-    titolo.className = 'todo-gruppo-titolo';
-    titolo.innerHTML = escapeHtml(cat) + ' <span class="todo-gruppo-conta">' + voci.length + '</span>';
-    gruppo.appendChild(titolo);
-    voci.forEach(t => gruppo.appendChild(rigaTodo(t)));
-    cont.appendChild(gruppo);
-  });
-  fatti.forEach(t => contFatti.appendChild(rigaTodo(t)));
+  // v2.4 — anche i completati restano divisi per categoria
+  const ordineFatti = [...ordine.filter(c => c !== 'Altro')];
+  fatti.forEach(t => { const c = t.categoria || 'Altro'; if (c !== 'Altro' && !ordineFatti.includes(c)) ordineFatti.push(c); });
+  ordineFatti.push('Altro');
+  const disegnaGruppi = (contenitore, elenco, ordineCat, usaFiltro) => {
+    ordineCat.forEach(cat => {
+      const voci = elenco.filter(t => (t.categoria || 'Altro') === cat);
+      if (!voci.length) return;
+      if (usaFiltro && filtroAttivoTodo && filtroAttivoTodo !== cat) return;
+      const gruppo = document.createElement('div');
+      gruppo.className = 'todo-gruppo';
+      gruppo.setAttribute('data-categoria', cat);
+      const titolo = document.createElement('div');
+      titolo.className = 'todo-gruppo-titolo';
+      titolo.innerHTML = escapeHtml(cat) + ' <span class="todo-gruppo-conta">' + voci.length + '</span>';
+      gruppo.appendChild(titolo);
+      voci.forEach(t => gruppo.appendChild(rigaTodo(t)));
+      contenitore.appendChild(gruppo);
+    });
+  };
+  disegnaGruppi(cont, daFare, ordine, true);
+  disegnaGruppi(contFatti, fatti, ordineFatti, false);
   aggiornaRicerca();
 }
 
@@ -1832,7 +1859,7 @@ function renderFiltriTodo(ordine, daFare) {
 
 // In ricerca: nasconde i titoli delle categorie che non hanno risultati
 function sistemaGruppiTodoInRicerca(attiva) {
-  document.querySelectorAll('#todo-lista .todo-gruppo').forEach(g => {
+  document.querySelectorAll('#todo-lista .todo-gruppo, #todo-completati .todo-gruppo').forEach(g => {
     if (!attiva) { g.style.display = ''; return; }
     const visibili = Array.from(g.querySelectorAll('[data-search]')).some(el => el.style.display !== 'none');
     g.style.display = visibili ? '' : 'none';
@@ -2114,7 +2141,7 @@ window.faiBackup = async function() {
   const btn = document.getElementById('btn-backup');
   btn.disabled = true; btn.textContent = '💾 Attendi…';
   try {
-    const dati = { app: 'Scrivania Condivisa', versione: '2.3', creato: new Date().toISOString(), fattoDa: nomeCompleto(UTENTE), collezioni: {} };
+    const dati = { app: 'Scrivania Condivisa', versione: '2.4', creato: new Date().toISOString(), fattoDa: nomeCompleto(UTENTE), collezioni: {} };
     let totale = 0;
     for (const nome of COLLEZIONI_BACKUP) {
       const snap = await getDocs(collection(db, nome));
@@ -2264,7 +2291,7 @@ window.cerca = function(testo) {
       if (match) trovatiInPanel++;
     });
     trovatiTotali += trovatiInPanel;
-    if (panel.id === 'todo') sistemaGruppiTodoInRicerca(true);
+    if (panel.id === 'todo' || panel.id === 'completate') sistemaGruppiTodoInRicerca(true);
     if (trovatiInPanel > 0) { panel.classList.add('active'); panel.style.minHeight = '0'; }
     else { panel.classList.remove('active'); panel.style.minHeight = ''; }
   });
